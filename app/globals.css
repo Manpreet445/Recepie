@@ -1,26 +1,137 @@
 @import "tailwindcss";
 
+/* color tokens and design system vars */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* backgrounds - warm dark tones */
+  --bg-page: #151514;
+  --bg-card: #1F1F1E;
+  --bg-deep: #1A1A19;
+  --bg-elevated: #272725;
+
+  /* text colors */
+  --text-primary: #F2F0EA;
+  --text-secondary: #9C9A92;
+  --text-tertiary: #73726C;
+
+  /* accent colors */
+  --teal: #1D9E75;
+  --teal-subtle: #085041;
+  --teal-glow: rgba(29, 158, 117, 0.12);
+  --amber: #EF9F27;
+  --amber-subtle: #633806;
+  --red: #D94F4F;
+  --green: #3DB06C;
+
+  /* borders */
+  --border: rgba(242, 240, 234, 0.12);
+  --border-strong: rgba(242, 240, 234, 0.20);
+
+  /* radius */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-pill: 9999px;
+
+  /* font stacks */
+  --font-serif: var(--font-fraunces), Georgia, "Times New Roman", serif;
+  --font-sans: var(--font-inter), system-ui, -apple-system, sans-serif;
+  --font-mono: var(--font-jetbrains), "Courier New", monospace;
 }
 
+/* registering everything with tailwind v4 */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-bg-page: #151514;
+  --color-bg-card: #1F1F1E;
+  --color-bg-deep: #1A1A19;
+  --color-bg-elevated: #272725;
+
+  --color-text-primary: #F2F0EA;
+  --color-text-secondary: #9C9A92;
+  --color-text-tertiary: #73726C;
+
+  --color-teal: #1D9E75;
+  --color-teal-subtle: #085041;
+  --color-teal-glow: rgba(29, 158, 117, 0.12);
+  --color-amber: #EF9F27;
+  --color-amber-subtle: #633806;
+  --color-red: #D94F4F;
+  --color-green: #3DB06C;
+
+  --color-border: rgba(242, 240, 234, 0.12);
+  --color-border-strong: rgba(242, 240, 234, 0.20);
+
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-pill: var(--radius-pill);
+
+  --font-serif: var(--font-serif);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+
+  --tracking-kicker: 0.2em;
+  --tracking-wordmark: 0.18em;
+  --tracking-utility: 0.14em;
+  --tracking-tight: -0.02em;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* base reset */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--bg-page);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+::selection {
+  background: rgba(29, 158, 117, 0.25);
+  color: var(--text-primary);
+}
+
+/* custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: var(--radius-pill);
+}
+
+:focus-visible {
+  outline: 1.5px solid var(--teal);
+  outline-offset: 2px;
+}
+
+/* utility classes */
+.text-gradient-teal {
+  background: linear-gradient(135deg, var(--teal), #15785A);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hairline-b {
+  border-bottom: 0.5px solid var(--border);
+}
+
+.hairline-t {
+  border-top: 0.5px solid var(--border);
+}
+
+.glow-teal {
+  box-shadow: 0 0 20px var(--teal-glow), 0 0 60px rgba(29, 158, 117, 0.05);
 }
