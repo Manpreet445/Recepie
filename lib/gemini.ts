@@ -117,7 +117,7 @@ const model = genAI.getGenerativeModel({
   model: "gemini-1.5-flash-latest",
   generationConfig: {
     responseMimeType: "application/json",
-    responseSchema: mealPlanSchema,
+    responseSchema: mealPlanSchema as any,
   },
 });
 
