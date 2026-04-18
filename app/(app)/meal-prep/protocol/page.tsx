@@ -12,19 +12,22 @@ import Link from "next/link";
 import { MealPlan } from "@/types/mealPlan";
 
 export default function ProtocolPage() {
+  const [mounted, setMounted] = useState(false);
   const [plan, setPlan] = useState<MealPlan>(mockMealPlan);
   const [expandedDays, setExpandedDays] = useState<number[]>([1]);
 
   useEffect(() => {
-    // try to load the latest generated plan from this session
-    const saved = sessionStorage.getItem("latest_plan");
-    if (saved) {
-      try {
-        setPlan(JSON.parse(saved));
-      } catch (e) {
-        console.error("Failed to parse the generated plan:", e);
+    Promise.resolve().then(() => {
+      setMounted(true);
+      const saved = sessionStorage.getItem("latest_plan");
+      if (saved) {
+        try {
+          setPlan(JSON.parse(saved));
+        } catch (e) {
+          console.error("Failed to parse the generated plan:", e);
+        }
       }
-    }
+    });
   }, []);
 
   const toggleDay = (day: number) => {
@@ -34,6 +37,8 @@ export default function ProtocolPage() {
   };
 
   const goalBadgeVariant = plan.goal === "cut" ? "deficit" : plan.goal === "bulk" ? "surplus" : "maintenance";
+
+  if (!mounted) return null;
 
   return (
     <div>

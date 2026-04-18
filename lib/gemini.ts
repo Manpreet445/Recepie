@@ -2,6 +2,8 @@
 // I'm using the official google generative ai package here
 
 import { GoogleGenerativeAI, SchemaType } from "@google/generative-ai";
+import { DossierInput, MacroTargets } from "@/types/profile";
+import { MealPlan } from "@/types/mealPlan";
 
 const apiKey = process.env.GEMINI_API_KEY;
 const genAI = new GoogleGenerativeAI(apiKey || "");
@@ -110,30 +112,32 @@ const mealPlanSchema = {
     },
   },
   required: ["id", "title", "createdAt", "durationDays", "goal", "macroTargets", "days"],
-};
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+} as any;
 
 // I'm using gemini-1.5-flash-latest because it's fast and cheap for this kind of thing
 const model = genAI.getGenerativeModel({
-  model: "gemini-1.5-flash-latest",
+  model: "gemini-flash-latest",
   generationConfig: {
     responseMimeType: "application/json",
-    responseSchema: mealPlanSchema as any,
+    responseSchema: mealPlanSchema,
   },
 });
 
 // the main function to generate a plan based on user dossier and target macros
-export async function generateMealPlan(prompt: string) {
-  if (!apiKey) {
+export async function generateMealPlan(prompt: string): Promise<MealPlan> {
+  const currentApiKey = process.env.GEMINI_API_KEY;
+  if (!currentApiKey) {
     throw new Error("I forgot to set the GEMINI_API_KEY in the environment!");
   }
 
   const result = await model.generateContent(prompt);
   const response = await result.response;
-  return JSON.parse(response.text());
+  return JSON.parse(response.text()) as MealPlan;
 }
 
 // helper to build the prompt string with all the user's constraints
-export function buildMealPlanPrompt(input: any, targets: any) {
+export function buildMealPlanPrompt(input: DossierInput, targets: MacroTargets) {
   return `
     Act as a Michelin-star chef and clinical nutritionist. 
     Create a ${input.durationDays}-day meal plan with ${input.mealsPerDay} meals per day.

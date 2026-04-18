@@ -21,9 +21,9 @@ export interface DossierInput {
   activityLevel: ActivityLevel;
   goal: Goal;
   macroFocus: MacroFocus;
-  dietaryPreferences: string[];
-  allergies: string[];
-  cuisinePreferences: string[];
+  dietary: string[];
+  allergies: string;
+  cuisines: string[];
   durationDays: number;
   mealsPerDay: number;
 }

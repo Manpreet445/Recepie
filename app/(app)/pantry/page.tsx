@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import Kicker from "@/components/shared/Kicker";
 import SectionDivider from "@/components/shared/SectionDivider";
 import RecipeCardAnimated from "@/components/shared/RecipeCardAnimated";
@@ -38,19 +38,25 @@ export default function PantryPage() {
   };
 
   // Mock matching logic
-  const results = showResults
-    ? mockRecipes.map((recipe) => {
-        const recipeIngNames = recipe.ingredients.map((i) => i.name.toLowerCase());
-        const matched = ingredients.filter((i) =>
-          recipeIngNames.some((ri) => ri.includes(i) || i.includes(ri))
-        );
-        return {
-          recipe,
-          matchedCount: Math.max(matched.length, Math.floor(Math.random() * 4) + 2),
-          missingCount: recipe.ingredients.length - Math.max(matched.length, Math.floor(Math.random() * 4) + 2),
-        };
-      }).sort((a, b) => b.matchedCount - a.matchedCount)
-    : [];
+  const results = React.useMemo(() => {
+    if (!showResults) return [];
+    
+    return mockRecipes.map((recipe) => {
+      const recipeIngNames = recipe.ingredients.map((i) => i.name.toLowerCase());
+      const matched = ingredients.filter((i) =>
+        recipeIngNames.some((ri) => ri.includes(i) || i.includes(ri))
+      );
+      // use a stable pseudo-random-ish math based on recipe id so it doesn't change on every render
+      const seed = recipe.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+      const fakeMatch = (seed % 4) + 2; 
+
+      return {
+        recipe,
+        matchedCount: Math.max(matched.length, fakeMatch),
+        missingCount: recipe.ingredients.length - Math.max(matched.length, fakeMatch),
+      };
+    }).sort((a, b) => b.matchedCount - a.matchedCount);
+  }, [showResults, ingredients]);
 
   return (
     <div>

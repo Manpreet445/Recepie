@@ -6,6 +6,7 @@ import Kicker from "@/components/shared/Kicker";
 import SectionDivider from "@/components/shared/SectionDivider";
 import { LoadingState, ErrorState } from "@/components/shared/StateComponents";
 import { computeNutritionTargets } from "@/lib/nutrition/tdee";
+import { DossierInput } from "@/types/profile";
 import { ChevronRight } from "lucide-react";
 
 const activityLevels = [
@@ -66,9 +67,9 @@ export default function DossierPage() {
         sex: form.sex,
         heightCm: form.heightCm,
         weightKg: form.weightKg,
-        activityLevel: form.activityLevel as any,
-        goal: form.goal as any,
-        macroFocus: form.macroFocus as any,
+        activityLevel: form.activityLevel as DossierInput["activityLevel"],
+        goal: form.goal as DossierInput["goal"],
+        macroFocus: form.macroFocus as DossierInput["macroFocus"],
       });
 
       // 2. Call our bridge API
@@ -88,8 +89,8 @@ export default function DossierPage() {
       sessionStorage.setItem("latest_plan", JSON.stringify(plan));
       
       router.push("/meal-prep/protocol");
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong.");
       setIsGenerating(false);
     }
   };

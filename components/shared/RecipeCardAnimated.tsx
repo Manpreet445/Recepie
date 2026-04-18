@@ -5,12 +5,11 @@ import { motion, useReducedMotion } from "framer-motion";
 import { Clock, Flame } from "lucide-react";
 import type { Recipe } from "@/types/recipe";
 import { recipeImage, IMAGE_SIZES } from "@/lib/images";
+import Image from "next/image";
 import {
   cardVariants,
   peekPanelVariants,
   thumbnailVariants,
-  DURATIONS_S,
-  EASE_SMOOTH,
 } from "@/lib/motion";
 
 interface RecipeCardAnimatedProps {
@@ -38,16 +37,17 @@ function StaticRecipeCard({
       className="group block bg-bg-card border border-border rounded-xl overflow-hidden hover:border-border-strong transition-colors"
     >
       <div className="flex gap-4 p-4">
-        <img
-          src={imgUrl}
-          alt={recipe.imageAlt}
-          width={imageSize[0]}
-          height={imageSize[1]}
-          loading="lazy"
-          className={`object-cover rounded-[12px] border border-border shrink-0 ${
-            variant === "protocol" ? "w-20 h-[60px]" : "w-[120px] h-[90px]"
-          }`}
-        />
+        <div className={`relative overflow-hidden rounded-[12px] border border-border shrink-0 ${
+          variant === "protocol" ? "w-20 h-[60px]" : "w-[120px] h-[90px]"
+        }`}>
+          <Image
+            src={imgUrl}
+            alt={recipe.imageAlt}
+            fill
+            className="object-cover"
+            sizes="(max-width: 768px) 100vw, 120px"
+          />
+        </div>
         <div className="flex-1 min-w-0">
           {mealType && (
             <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-text-tertiary">
@@ -126,20 +126,23 @@ export default function RecipeCardAnimated({
       <div className="flex gap-4 p-4">
         {/* thumbnail — zooms slightly on hover */}
         <div
-          className={`overflow-hidden rounded-[12px] border border-border shrink-0 ${
+          className={`relative overflow-hidden rounded-[12px] border border-border shrink-0 ${
             variant === "protocol" ? "w-20 h-[60px]" : "w-[120px] h-[90px]"
           }`}
         >
-          <motion.img
+          <motion.div
             layoutId={`recipe-image-${recipe.id}`}
-            src={imgUrl}
-            alt={recipe.imageAlt}
-            width={imageSize[0]}
-            height={imageSize[1]}
-            loading="lazy"
+            className="w-full h-full relative"
             variants={thumbnailVariants}
-            className="w-full h-full object-cover"
-          />
+          >
+            <Image
+              src={imgUrl}
+              alt={recipe.imageAlt}
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, 120px"
+            />
+          </motion.div>
         </div>
 
         <div className="flex-1 min-w-0">
