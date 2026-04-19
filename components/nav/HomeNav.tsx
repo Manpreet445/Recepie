@@ -14,13 +14,13 @@ export default function HomeNav() {
       </Link>
 
       {/* Center: Issue marker */}
-      <span className="hidden md:block font-mono text-[10px] uppercase tracking-[0.2em] text-text-tertiary">
+      <span className="hidden md:block kicker text-[10px] text-text-tertiary">
         Issue Nº 001
       </span>
 
       {/* Right: Actions */}
       <div className="flex items-center gap-3">
-        <button className="w-8 h-8 rounded-full bg-bg-card/50 backdrop-blur border border-border flex items-center justify-center hover:border-border-strong transition-colors">
+        <button className="w-8 h-8 bg-bg-card/50 backdrop-blur border-[0.5px] border-[#6d7a73]/40 flex items-center justify-center hover:border-[#6d7a73]/70 transition-colors">
           <User className="w-4 h-4 text-text-secondary" />
         </button>
         <GuestPill />

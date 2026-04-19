@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { inter, jetbrainsMono, fraunces } from "./fonts";
+import { inter, spaceGrotesk, fraunces } from "./fonts";
 import MotionProvider from "@/components/MotionProvider";
 import "./globals.css";
 
@@ -18,7 +18,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${jetbrainsMono.variable} ${fraunces.variable} antialiased`}
+      className={`${inter.variable} ${spaceGrotesk.variable} ${fraunces.variable} antialiased`}
     >
       <body className="min-h-screen flex flex-col bg-bg-page text-text-primary font-sans">
         <MotionProvider>{children}</MotionProvider>

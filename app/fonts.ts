@@ -1,4 +1,4 @@
-import { Inter, JetBrains_Mono, Fraunces } from "next/font/google";
+import { Inter, Space_Grotesk, Fraunces } from "next/font/google";
 
 export const inter = Inter({
   subsets: ["latin"],
@@ -6,10 +6,11 @@ export const inter = Inter({
   variable: "--font-inter",
 });
 
-export const jetbrainsMono = JetBrains_Mono({
+export const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
   display: "swap",
-  variable: "--font-jetbrains",
+  variable: "--font-space-grotesk",
+  weight: ["300", "400", "500", "600", "700"],
 });
 
 export const fraunces = Fraunces({

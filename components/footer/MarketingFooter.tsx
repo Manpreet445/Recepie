@@ -7,14 +7,13 @@ export default function MarketingFooter() {
       <SectionDivider glyph="◆" className="my-0 px-8" />
 
       <div className="max-w-5xl mx-auto px-8 py-16 text-center">
-        {/* CTA placeholder */}
-        <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-teal mb-4">
+        <p className="kicker text-[10px] text-forest mb-4">
           Coming soon
         </p>
-        <h3 className="font-serif text-2xl md:text-3xl text-text-primary mb-3">
+        <h3 className="font-headline text-2xl md:text-3xl text-text-primary mb-3">
           Join the kitchen.
         </h3>
-        <p className="text-sm text-text-secondary max-w-md mx-auto mb-8">
+        <p className="font-body text-sm text-text-secondary max-w-md mx-auto mb-8">
           Sign up for early access when we open reservations. We&apos;ll keep the kettle on.
         </p>
 
@@ -22,16 +21,15 @@ export default function MarketingFooter() {
           <input
             type="email"
             placeholder="your@email.com"
-            className="flex-1 px-4 py-2.5 bg-bg-card border border-border rounded-lg text-sm text-text-primary placeholder:text-text-tertiary focus:border-teal/40 focus:outline-none transition-colors"
+            className="flex-1 px-4 py-2.5 bg-bg-card border-[0.5px] border-[#6d7a73]/40 text-sm text-text-primary placeholder:text-text-tertiary focus:border-forest/40 focus:outline-none transition-colors"
           />
-          <button className="px-5 py-2.5 bg-teal text-bg-page font-mono text-xs uppercase tracking-[0.1em] rounded-lg hover:bg-teal-subtle transition-colors font-medium">
+          <button className="px-5 py-2.5 bg-forest text-bg-page kicker text-xs hover:bg-forest-subtle transition-colors font-medium">
             Notify me
           </button>
         </div>
 
         <SectionDivider className="max-w-xs mx-auto" />
 
-        {/* Bottom */}
         <div className="flex flex-col items-center gap-4">
           <Wordmark size="sm" />
           <p className="text-[10px] text-text-tertiary">
