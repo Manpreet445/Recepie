@@ -8,6 +8,7 @@ import { LoadingState, ErrorState } from "@/components/shared/StateComponents";
 import { computeNutritionTargets } from "@/lib/nutrition/tdee";
 import { DossierInput } from "@/types/profile";
 import { ChevronRight } from "lucide-react";
+import { savePlan } from "@/lib/plans";
 
 const activityLevels = [
   { value: "sedentary", label: "Sedentary", desc: "Little or no exercise" },
@@ -85,9 +86,14 @@ export default function DossierPage() {
 
       const plan = await response.json();
 
-      // 3. Store in session so the protocol page can pick it up
+      // 3. Keep in sessionStorage so protocol page can read it immediately
       sessionStorage.setItem("latest_plan", JSON.stringify(plan));
-      
+
+      // Persist to Supabase in the background — don't block navigation
+      savePlan(plan).catch((err) =>
+        console.warn("Could not save plan to Supabase (non-blocking):", err)
+      );
+
       router.push("/meal-prep/protocol");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");

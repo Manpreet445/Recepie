@@ -98,7 +98,7 @@ export function MealCard({ mealType, recipe }: MealCardProps) {
           </span>
           <span className="flex items-center gap-1">
             <Flame className="w-3 h-3" />
-            {recipe.kcal}
+            {recipe.kcal} / srv
           </span>
         </div>
       </div>
@@ -159,7 +159,7 @@ export function RecipeCard({ recipe, matchedCount, missingCount }: RecipeCardPro
             </span>
             <span className="flex items-center gap-1">
               <Flame className="w-3 h-3" />
-              {recipe.kcal} kcal
+              {recipe.kcal} kcal / srv
             </span>
             <span className="flex items-center gap-1">
               <Beef className="w-3 h-3" />

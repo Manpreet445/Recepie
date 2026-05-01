@@ -20,7 +20,7 @@ export default function RootLayout({
       lang="en"
       className={`${inter.variable} ${spaceGrotesk.variable} ${fraunces.variable} antialiased`}
     >
-      <body className="min-h-screen flex flex-col bg-bg-page text-text-primary font-sans">
+      <body suppressHydrationWarning className="min-h-screen flex flex-col bg-bg-page text-text-primary font-sans">
         <MotionProvider>{children}</MotionProvider>
       </body>
     </html>

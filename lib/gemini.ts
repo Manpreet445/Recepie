@@ -74,8 +74,11 @@ const mealPlanSchema = {
                         properties: {
                           stepNumber: { type: SchemaType.NUMBER },
                           title: { type: SchemaType.STRING },
-                          instruction: { type: SchemaType.STRING },
+                          instruction: { type: SchemaType.STRING, description: "Detailed step-by-step instruction for this cooking step" },
                           durationMinutes: { type: SchemaType.NUMBER },
+                          warning: { type: SchemaType.STRING, description: "A beginner-friendly warning about what can go wrong, e.g. 'Make sure the pan is fully hot before adding the fish or it will stick and tear'" },
+                          tip: { type: SchemaType.STRING, description: "A helpful shortcut, substitution, or technique tip, e.g. 'If you want to skip toasting the spices, use pre-ground — it still works'" },
+                          optional: { type: SchemaType.STRING, description: "An optional upgrade to elevate the dish, e.g. 'Add a drizzle of truffle oil for an extra layer of richness'" },
                         },
                         required: ["stepNumber", "title", "instruction"],
                       },
@@ -139,7 +142,7 @@ export async function generateMealPlan(prompt: string): Promise<MealPlan> {
 // helper to build the prompt string with all the user's constraints
 export function buildMealPlanPrompt(input: DossierInput, targets: MacroTargets) {
   return `
-    Act as a Michelin-star chef and clinical nutritionist. 
+    Act as a Michelin-star chef and clinical nutritionist who specializes in teaching home cooks.
     Create a ${input.durationDays}-day meal plan with ${input.mealsPerDay} meals per day.
     
     User Profile:
@@ -151,13 +154,34 @@ export function buildMealPlanPrompt(input: DossierInput, targets: MacroTargets) 
     - Cuisines preferred: ${input.cuisines.join(", ") || "Global"}
     
     Rules for your protocol:
-    1. Every recipe must be real, high-quality, and detailed. 
+    1. Every recipe must be real, high-quality, and detailed.
     2. The daily totals across the meals must roughly match the targets (within +/- 5%).
     3. Use "imageQuery" to provide a 2-4 word search term for a photo of the dish (e.g. "shrimp scampi bowl").
     4. Use "imageAlt" for a descriptive accessibility text.
     5. Recipes should be sophisticated but doable in a home kitchen.
     6. Include a "curatorNote" for every recipe explaining why it fits the user's profile.
     7. Ensure diverse ingredients (don't give chicken for every meal).
+    8. The recipe macros (kcal, proteinG, carbsG, fatG) MUST be accurate for exactly ONE single serving, not the entire recipe batch.
+    9. The "dailyTotals" MUST equal the exact sum of ONE single serving of each meal eaten that day.
+    
+    IMPORTANT — Beginner-Friendly Guidance:
+    For EVERY ritual step, you MUST include at least one of these three fields:
+    - "warning": A beginner-friendly caution about what can go wrong.
+      Examples: "Make sure the pan is smoking hot before adding the salmon or it will stick and tear."
+      "Don't overcrowd the pan — cook in batches if needed, otherwise the chicken will steam instead of sear."
+      "Let the meat rest for at least 5 minutes or all the juices will run out when you cut it."
+    - "tip": A helpful shortcut, substitution, or technique tip for less experienced cooks.
+      Examples: "If you want to skip toasting the spices, pre-ground works fine — just add 30 seconds earlier."
+      "No mortar and pestle? Put the garlic in a ziplock bag and smash it with a rolling pin."
+      "You can prep the marinade the night before and refrigerate — it actually tastes better that way."
+    - "optional": An optional upgrade that can elevate the dish for more adventurous cooks.
+      Examples: "For extra richness, stir in a tablespoon of cold butter right at the end."
+      "A pinch of MSG here is the secret — it deepens the umami without adding sodium."
+      "Top with microgreens and a drizzle of aged balsamic for a restaurant-quality finish."
+    
+    Aim to include warnings on steps where beginners commonly make mistakes,
+    tips on steps that have useful shortcuts, and optional upgrades on finishing steps.
+    Each step should have at least 1 of these 3 fields, and most steps should have 2.
     
     Generate exactly ${input.durationDays} days of content.
   `;

@@ -1,12 +1,13 @@
 "use client";
 
-import { use, useState } from "react";
-import { notFound } from "next/navigation";
+import { use, useState, useEffect } from "react";
+import { notFound, useRouter } from "next/navigation";
 import { motion, useScroll, useSpring, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { mockRecipes } from "@/lib/mocks/data";
-import { recipeImage } from "@/lib/images";
-import { Clock, ArrowLeft } from "lucide-react";
+import { smartRecipeImage, IMAGE_SIZES } from "@/lib/images";
+import { Clock, ArrowLeft, Users, AlertTriangle, Lightbulb, Sparkles } from "lucide-react";
+import type { Recipe } from "@/types/recipe";
 
 // ── Motion constants ───────────────────────────────────────────────────────
 const EASE: [number, number, number, number] = [0.16, 1, 0.3, 1];
@@ -23,13 +24,63 @@ const itemVariants = {
 
 // ── Data helpers ───────────────────────────────────────────────────────────
 const SECTION_LABELS: Record<string, string> = {
-  body:    "Proteins & Produce",
-  base:    "Base & Grains",
-  spice:   "Spice & Seasoning",
-  liquid:  "Oils & Liquids",
-  garnish: "Garnish & Herbs",
+  body:       "Proteins & Produce",
+  protein:    "Proteins & Produce",
+  proteins:   "Proteins & Produce",
+  produce:    "Produce & Vegetables",
+  vegetable:  "Vegetables",
+  vegetables: "Vegetables",
+  base:       "Base & Grains",
+  grains:     "Base & Grains",
+  grain:      "Base & Grains",
+  starch:     "Base & Starches",
+  spice:      "Spice & Seasoning",
+  spices:     "Spice & Seasoning",
+  seasoning:  "Spice & Seasoning",
+  liquid:     "Oils & Liquids",
+  liquids:    "Oils & Liquids",
+  oil:        "Oils & Liquids",
+  oils:       "Oils & Liquids",
+  dairy:      "Dairy",
+  garnish:    "Garnish & Herbs",
+  herbs:      "Garnish & Herbs",
+  other:      "Other Ingredients",
 };
-const SECTION_ORDER = ["body", "base", "spice", "liquid", "garnish"] as const;
+
+// Accent color for recipe detail — uses the green/forest theme
+const ACCENT = "var(--forest, #00694c)";
+const ACCENT_HEX = "#00694c";
+const ACCENT_SUBTLE = "#004d37";
+
+/** Pull every recipe from the latest generated plan stored in sessionStorage */
+function getPlanRecipes(): Recipe[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = sessionStorage.getItem("latest_plan");
+    if (!raw) return [];
+    const plan = JSON.parse(raw);
+    if (!plan?.days) return [];
+    return plan.days.flatMap(
+      (day: { meals?: { recipe: Recipe }[] }) =>
+        (day.meals ?? []).map((m) => m.recipe)
+    );
+  } catch {
+    return [];
+  }
+}
+
+/** Get the plan's duration from sessionStorage for scaling */
+function getPlanDuration(): number {
+  if (typeof window === "undefined") return 1;
+  try {
+    const raw = sessionStorage.getItem("latest_plan");
+    if (!raw) return 1;
+    const plan = JSON.parse(raw);
+    return plan?.durationDays ?? 1;
+  } catch {
+    return 1;
+  }
+}
 
 // ── Page ───────────────────────────────────────────────────────────────────
 export default function RecipeDetailPage({
@@ -38,7 +89,29 @@ export default function RecipeDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
-  const recipe = mockRecipes.find((r) => r.id === id);
+
+  const router = useRouter();
+
+  // First try mock recipes, then sessionStorage plan recipes
+  const [recipe, setRecipe] = useState<Recipe | null>(
+    () => mockRecipes.find((r) => r.id === id) ?? null
+  );
+  const [loaded, setLoaded] = useState(!!recipe);
+  const [servingMultiplier, setServingMultiplier] = useState(1);
+
+  useEffect(() => {
+    if (recipe) { setLoaded(true); return; }
+    // Recipe not in mocks — search the latest generated plan
+    const planRecipe = getPlanRecipes().find((r) => r.id === id);
+    if (planRecipe) setRecipe(planRecipe);
+    setLoaded(true);
+  }, [id, recipe]);
+
+  // Initialize multiplier from plan duration
+  useEffect(() => {
+    const duration = getPlanDuration();
+    if (duration > 1) setServingMultiplier(duration);
+  }, []);
 
   const [checkedItems, setCheckedItems] = useState<string[]>([]);
 
@@ -49,6 +122,7 @@ export default function RecipeDetailPage({
     restDelta: 0.001,
   });
 
+  if (!loaded) return null;
   if (!recipe) notFound();
 
   const toggleItem = (key: string) =>
@@ -56,7 +130,7 @@ export default function RecipeDetailPage({
       prev.includes(key) ? prev.filter((i) => i !== key) : [...prev, key]
     );
 
-  const heroUrl = recipeImage(recipe.imageQuery, [1200, 820]);
+  const heroUrl = smartRecipeImage(recipe.imageQuery, IMAGE_SIZES.hero);
 
   const ingredientGroups = recipe.ingredients.reduce(
     (acc, ing) => {
@@ -67,12 +141,20 @@ export default function RecipeDetailPage({
     {} as Record<string, typeof recipe.ingredients>
   );
 
+  /** Scale a quantity string by the multiplier */
+  function scaleQty(qty: string): string {
+    const num = parseFloat(qty);
+    if (isNaN(num)) return qty;
+    const scaled = num * servingMultiplier;
+    return scaled % 1 === 0 ? String(scaled) : scaled.toFixed(1);
+  }
+
   return (
     <>
-      {/* ── Amber ambient scrollbar ─────────────────────────────────── */}
+      {/* ── Green ambient scrollbar ─────────────────────────────────── */}
       <motion.div
-        style={{ scaleX, transformOrigin: "0%" }}
-        className="fixed top-0 left-0 right-0 h-[1px] bg-[#EF9F27] z-[100] pointer-events-none"
+        style={{ scaleX, transformOrigin: "0%", background: `linear-gradient(90deg, ${ACCENT_HEX}, ${ACCENT_SUBTLE})` }}
+        className="fixed top-0 left-0 right-0 h-[2px] z-[100] pointer-events-none"
       />
 
       <motion.div
@@ -84,13 +166,13 @@ export default function RecipeDetailPage({
 
         {/* ── Back ──────────────────────────────────────────────────── */}
         <motion.div variants={itemVariants} className="mb-12">
-          <Link
-            href="/pantry"
-            className="inline-flex items-center gap-2 kicker text-[10px] text-text-tertiary hover:text-[#EF9F27] transition-colors duration-300"
+          <button
+            onClick={() => router.back()}
+            className="inline-flex items-center gap-2 kicker text-[10px] text-text-tertiary hover:text-teal transition-colors duration-300 cursor-pointer"
           >
             <ArrowLeft className="w-3 h-3" />
-            PANTRY / BACK
-          </Link>
+            BACK
+          </button>
         </motion.div>
 
         {/* ── Hero: text left + image right ─────────────────────────── */}
@@ -98,11 +180,11 @@ export default function RecipeDetailPage({
 
           {/* Left — editorial text block */}
           <motion.div variants={itemVariants} className="lg:pt-4">
-            <span className="kicker text-[10px] text-[#EF9F27] block mb-10">
-              ISSUE 04 — PANTRY PAIRING
+            <span className="kicker text-[10px] text-teal block mb-10">
+              RECIPE DETAIL
             </span>
 
-            <h1 className="font-headline text-6xl md:text-7xl leading-[1.0] tracking-tight text-[#F2F0EA] mb-4">
+            <h1 className="font-headline text-5xl md:text-6xl lg:text-7xl leading-[1.0] tracking-tight text-[#F2F0EA] mb-4">
               {recipe.title}
             </h1>
 
@@ -143,10 +225,10 @@ export default function RecipeDetailPage({
             {/* Energy + macros */}
             <div className="border-t-[0.5px] border-white/20 pt-6 mt-6 flex gap-8 flex-wrap">
               {[
-                { label: "ENERGY",  val: `${recipe.kcal} kcal` },
-                { label: "PROTEIN", val: `${recipe.proteinG}g` },
-                { label: "CARBS",   val: `${recipe.carbsG}g` },
-                { label: "FAT",     val: `${recipe.fatG}g` },
+                { label: "ENERGY / SRV",  val: `${recipe.kcal} kcal` },
+                { label: "PROTEIN / SRV", val: `${recipe.proteinG}g` },
+                { label: "CARBS / SRV",   val: `${recipe.carbsG}g` },
+                { label: "FAT / SRV",     val: `${recipe.fatG}g` },
               ].map((m) => (
                 <div key={m.label}>
                   <span className="kicker text-[9px] text-[#9C9A92] block mb-1">
@@ -170,21 +252,40 @@ export default function RecipeDetailPage({
             </div>
           </motion.div>
 
-          {/* Right — cinematic image with offset shadow */}
+          {/* Right — cinematic image that properly fills the frame */}
           <motion.div variants={itemVariants} className="relative">
-            {/* Decorative offset box */}
-            <div className="absolute inset-0 bg-[#1a1a19] translate-x-4 translate-y-4 -z-10" />
+            {/* Decorative offset box with green accent */}
+            <div
+              className="absolute inset-0 translate-x-4 translate-y-4 -z-10"
+              style={{ background: ACCENT_SUBTLE, opacity: 0.3 }}
+            />
 
-            <div className="overflow-hidden h-[480px] md:h-[680px] relative z-10">
+            <div className="overflow-hidden w-full aspect-[3/4] md:aspect-[4/5] relative z-10">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <motion.img
                 src={heroUrl}
                 alt={recipe.imageAlt}
                 className="w-full h-full object-cover"
+                style={{ objectPosition: "center center" }}
                 whileHover={{ scale: 1.03 }}
                 transition={{ duration: 2, ease: EASE }}
               />
               {/* Bottom readability scrim */}
               <div className="absolute inset-0 bg-gradient-to-t from-[#151514]/60 via-transparent to-transparent pointer-events-none" />
+
+              {/* Floating cuisine badge */}
+              {recipe.cuisines.length > 0 && (
+                <div className="absolute bottom-6 left-6 flex gap-2">
+                  {recipe.cuisines.map((c) => (
+                    <span
+                      key={c}
+                      className="kicker text-[9px] bg-black/60 backdrop-blur-sm text-white/90 px-3 py-1.5 border border-white/10"
+                    >
+                      {c}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
           </motion.div>
 
@@ -200,23 +301,44 @@ export default function RecipeDetailPage({
           >
             <div
               className="bg-[#1a1a19] p-8"
-              style={{ borderLeft: "0.5px solid rgba(255,255,255,0.2)", borderTop: "0.5px solid rgba(255,255,255,0.2)" }}
+              style={{ borderLeft: `2px solid ${ACCENT_HEX}`, borderTop: "0.5px solid rgba(255,255,255,0.2)" }}
             >
-              <h2 className="font-headline text-3xl text-[#EF9F27] mb-2">
+              <h2 className="font-headline text-3xl text-teal mb-2">
                 The Manifest
               </h2>
-              <p className="font-body text-xs text-[#9C9A92] mb-8 leading-relaxed">
-                Tap to cross off as you cook.
+              <p className="font-body text-xs text-[#9C9A92] mb-4 leading-relaxed">
+                Tap to cross off as you prep. Quantities shown per serving.
               </p>
 
+              {/* Serving multiplier */}
+              <div className="flex items-center gap-3 mb-6 pb-4 border-b border-white/10">
+                <Users className="w-4 h-4 text-teal" />
+                <span className="font-mono text-[10px] text-[#9C9A92] tracking-wider">SERVINGS</span>
+                <div className="flex items-center gap-1 ml-auto">
+                  {[1, 2, 3, 4].map((n) => (
+                    <button
+                      key={n}
+                      onClick={() => setServingMultiplier(n)}
+                      className={`w-8 h-8 font-mono text-sm transition-colors cursor-pointer border ${
+                        servingMultiplier === n
+                          ? "bg-teal/15 border-teal/40 text-teal"
+                          : "border-white/10 text-[#9C9A92] hover:border-white/20 hover:text-text-primary"
+                      }`}
+                    >
+                      {n}×
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <div className="space-y-7">
-                {SECTION_ORDER.map((section) => {
+                {Object.keys(ingredientGroups).map((section) => {
                   const items = ingredientGroups[section];
                   if (!items?.length) return null;
                   return (
                     <div key={section}>
-                      <p className="kicker text-[9px] text-[#9C9A92] pb-2 mb-2 border-b-[0.5px] border-white/10">
-                        {SECTION_LABELS[section]}
+                      <p className="kicker text-[9px] text-teal pb-2 mb-2 border-b-[0.5px] border-white/10">
+                        {SECTION_LABELS[section.toLowerCase()] || section.charAt(0).toUpperCase() + section.slice(1)}
                       </p>
                       <div className="space-y-0">
                         {items.map((ing) => {
@@ -244,8 +366,8 @@ export default function RecipeDetailPage({
                               >
                                 {ing.name}
                               </span>
-                              <span className="kicker text-[10px] text-[#9C9A92] shrink-0">
-                                {ing.quantity}&nbsp;{ing.unit}
+                              <span className="font-mono text-[11px] text-[#9C9A92] shrink-0 tabular-nums">
+                                {scaleQty(ing.quantity)}&nbsp;{ing.unit}
                               </span>
                             </motion.div>
                           );
@@ -267,7 +389,7 @@ export default function RecipeDetailPage({
                     className="overflow-hidden"
                   >
                     <div className="flex items-center justify-between mt-6 pt-4 border-t-[0.5px] border-white/20">
-                      <span className="kicker text-[10px] text-[#EF9F27]">
+                      <span className="kicker text-[10px] text-teal">
                         {checkedItems.length}/{recipe.ingredients.length} PREPPED
                       </span>
                       <button
@@ -287,7 +409,7 @@ export default function RecipeDetailPage({
           <div className="lg:col-span-8 lg:pl-20 space-y-0">
             <motion.span
               variants={itemVariants}
-              className="kicker text-[10px] text-[#EF9F27] block mb-16"
+              className="kicker text-[10px] text-teal block mb-16"
             >
               THE RITUAL
             </motion.span>
@@ -300,7 +422,7 @@ export default function RecipeDetailPage({
               >
                 {/* Magnetic number */}
                 <motion.div
-                  whileHover={{ x: 8, color: "#EF9F27" }}
+                  whileHover={{ x: 8, color: ACCENT_HEX }}
                   transition={{ duration: 0.8, ease: EASE }}
                   className="shrink-0 pt-1"
                   style={{ color: "#2a2a28" }}
@@ -320,12 +442,78 @@ export default function RecipeDetailPage({
                   </p>
                   {step.durationMinutes && (
                     <div className="flex items-center gap-2 mt-5">
-                      <Clock className="w-3 h-3 text-[#EF9F27]" />
+                      <Clock className="w-3 h-3 text-teal" />
                       <span className="kicker text-[10px] text-[#9C9A92]">
                         {step.durationMinutes} MIN
                       </span>
                     </div>
                   )}
+
+                  {/* ── Beginner-friendly callouts ──────────────────── */}
+                  <div className="mt-5 space-y-3">
+                    {step.warning && (
+                      <div
+                        className="flex gap-3 p-4"
+                        style={{
+                          background: "rgba(217, 79, 79, 0.06)",
+                          borderLeft: "2px solid #D94F4F",
+                          border: "0.5px solid rgba(217, 79, 79, 0.15)",
+                          borderLeftWidth: "2px",
+                          borderLeftColor: "#D94F4F",
+                        }}
+                      >
+                        <AlertTriangle className="w-4 h-4 text-[#D94F4F] shrink-0 mt-0.5" />
+                        <div>
+                          <span className="kicker text-[9px] text-[#D94F4F] block mb-1">WARNING</span>
+                          <p className="font-body text-sm text-[#c9a9a9] leading-relaxed">
+                            {step.warning}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {step.tip && (
+                      <div
+                        className="flex gap-3 p-4"
+                        style={{
+                          background: "rgba(0, 105, 76, 0.06)",
+                          borderLeft: "2px solid var(--forest)",
+                          border: "0.5px solid rgba(0, 105, 76, 0.15)",
+                          borderLeftWidth: "2px",
+                          borderLeftColor: "var(--forest)",
+                        }}
+                      >
+                        <Lightbulb className="w-4 h-4 text-teal shrink-0 mt-0.5" />
+                        <div>
+                          <span className="kicker text-[9px] text-teal block mb-1">TIP</span>
+                          <p className="font-body text-sm text-[#9C9A92] leading-relaxed">
+                            {step.tip}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {step.optional && (
+                      <div
+                        className="flex gap-3 p-4"
+                        style={{
+                          background: "rgba(239, 159, 39, 0.05)",
+                          borderLeft: "2px solid #EF9F27",
+                          border: "0.5px solid rgba(239, 159, 39, 0.12)",
+                          borderLeftWidth: "2px",
+                          borderLeftColor: "#EF9F27",
+                        }}
+                      >
+                        <Sparkles className="w-4 h-4 text-[#EF9F27] shrink-0 mt-0.5" />
+                        <div>
+                          <span className="kicker text-[9px] text-[#EF9F27] block mb-1">OPTIONAL UPGRADE</span>
+                          <p className="font-body text-sm text-[#b5a080] leading-relaxed">
+                            {step.optional}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </motion.div>
             ))}
@@ -333,14 +521,14 @@ export default function RecipeDetailPage({
             {/* Curator's note */}
             {recipe.curatorNote && (
               <motion.div variants={itemVariants} className="mt-16 pt-16 border-t-[0.5px] border-white/10">
-                <span className="kicker text-[10px] text-[#EF9F27] block mb-6">
+                <span className="kicker text-[10px] text-teal block mb-6">
                   CURATOR&apos;S NOTE
                 </span>
                 <div
                   className="bg-[#1a1a19] p-10"
                   style={{
                     border: "0.5px solid rgba(255,255,255,0.12)",
-                    borderLeft: "2px solid #EF9F27",
+                    borderLeft: `2px solid ${ACCENT_HEX}`,
                   }}
                 >
                   <p className="font-headline italic text-2xl text-[#F2F0EA] leading-snug">

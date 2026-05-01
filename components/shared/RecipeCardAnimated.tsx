@@ -2,9 +2,9 @@
 
 import { useRouter } from "next/navigation";
 import { motion, useReducedMotion } from "framer-motion";
-import { Clock, Flame } from "lucide-react";
+import { Clock, Flame, ChefHat } from "lucide-react";
 import type { Recipe } from "@/types/recipe";
-import { recipeImage, IMAGE_SIZES } from "@/lib/images";
+import { smartRecipeImage, IMAGE_SIZES } from "@/lib/images";
 import Image from "next/image";
 import {
   cardVariants,
@@ -28,17 +28,17 @@ function StaticRecipeCard({
   matchedCount,
   missingCount,
 }: RecipeCardAnimatedProps) {
-  const imageSize = variant === "protocol" ? IMAGE_SIZES.small : IMAGE_SIZES.thumbnail;
-  const imgUrl = recipeImage(recipe.imageQuery, imageSize);
+  const imageSize = variant === "protocol" ? IMAGE_SIZES.thumbnail : IMAGE_SIZES.thumbnail;
+  const imgUrl = smartRecipeImage(recipe.imageQuery, imageSize);
 
   return (
     <a
       href={`/recipe/${recipe.id}`}
-      className="group block bg-bg-card border border-border rounded-xl overflow-hidden hover:border-border-strong transition-colors"
+      className="group block bg-bg-card border border-border overflow-hidden hover:border-border-strong transition-colors"
     >
       <div className="flex gap-4 p-4">
-        <div className={`relative overflow-hidden rounded-[12px] border border-border shrink-0 ${
-          variant === "protocol" ? "w-20 h-[60px]" : "w-[120px] h-[90px]"
+        <div className={`relative overflow-hidden border border-border shrink-0 ${
+          variant === "protocol" ? "w-[100px] h-[75px]" : "w-[120px] h-[90px]"
         }`}>
           <Image
             src={imgUrl}
@@ -50,7 +50,7 @@ function StaticRecipeCard({
         </div>
         <div className="flex-1 min-w-0">
           {mealType && (
-            <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-text-tertiary">
+            <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-teal">
               {mealType}
             </span>
           )}
@@ -60,11 +60,15 @@ function StaticRecipeCard({
           <div className="flex items-center gap-3 mt-1 text-[11px] text-text-tertiary">
             <span className="flex items-center gap-1">
               <Flame className="w-3 h-3" />
-              {recipe.kcal} kcal
+              {recipe.kcal} kcal / srv
             </span>
             <span className="flex items-center gap-1">
               <Clock className="w-3 h-3" />
               {recipe.prepMinutes + recipe.cookMinutes}m
+            </span>
+            <span className="flex items-center gap-1">
+              <ChefHat className="w-3 h-3" />
+              {recipe.servings} srv
             </span>
           </div>
           {matchedCount !== undefined && (
@@ -102,12 +106,12 @@ export default function RecipeCardAnimated({
     );
   }
 
-  const imageSize = variant === "protocol" ? IMAGE_SIZES.small : IMAGE_SIZES.thumbnail;
-  const imgUrl = recipeImage(recipe.imageQuery, imageSize);
+  const imageSize = variant === "protocol" ? IMAGE_SIZES.thumbnail : IMAGE_SIZES.thumbnail;
+  const imgUrl = smartRecipeImage(recipe.imageQuery, imageSize);
 
-  // grab first 3 ingredients to show in the peek panel
-  const previewIngredients = recipe.ingredients.slice(0, 3).map((i) => i.name);
-  const moreCount = Math.max(0, recipe.ingredients.length - 3);
+  // grab first 3 ingredients to show with measurements in the peek panel
+  const previewIngredients = recipe.ingredients.slice(0, 4);
+  const moreCount = Math.max(0, recipe.ingredients.length - 4);
 
   const handleClick = () => {
     router.push(`/recipe/${recipe.id}`);
@@ -120,14 +124,14 @@ export default function RecipeCardAnimated({
       initial="rest"
       whileHover="peek"
       variants={cardVariants}
-      className="bg-bg-card border border-border rounded-xl overflow-hidden cursor-pointer hover:border-border-strong transition-[border-color]"
+      className="bg-bg-card border border-border overflow-hidden cursor-pointer hover:border-border-strong transition-[border-color]"
       style={{ willChange: "transform" }}
     >
       <div className="flex gap-4 p-4">
         {/* thumbnail — zooms slightly on hover */}
         <div
-          className={`relative overflow-hidden rounded-[12px] border border-border shrink-0 ${
-            variant === "protocol" ? "w-20 h-[60px]" : "w-[120px] h-[90px]"
+          className={`relative overflow-hidden border border-border shrink-0 ${
+            variant === "protocol" ? "w-[100px] h-[75px]" : "w-[120px] h-[90px]"
           }`}
         >
           <motion.div
@@ -147,7 +151,7 @@ export default function RecipeCardAnimated({
 
         <div className="flex-1 min-w-0">
           {mealType && (
-            <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-text-tertiary">
+            <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-teal">
               {mealType}
             </span>
           )}
@@ -160,11 +164,15 @@ export default function RecipeCardAnimated({
           <div className="flex items-center gap-3 mt-1 text-[11px] text-text-tertiary font-mono">
             <span className="flex items-center gap-1">
               <Flame className="w-3 h-3" />
-              {recipe.kcal} kcal
+              {recipe.kcal} kcal / srv
             </span>
             <span className="flex items-center gap-1">
               <Clock className="w-3 h-3" />
               {recipe.prepMinutes + recipe.cookMinutes}m
+            </span>
+            <span className="flex items-center gap-1">
+              <ChefHat className="w-3 h-3" />
+              {recipe.servings} srv
             </span>
           </div>
           {matchedCount !== undefined && (
@@ -182,7 +190,7 @@ export default function RecipeCardAnimated({
       >
         <div className="px-4 pb-4 pt-0">
           <p className="font-mono text-[11px] text-text-secondary">
-            {recipe.kcal} kcal · {recipe.proteinG}g P · {recipe.carbsG}g C · {recipe.fatG}g F
+            Per srv: {recipe.kcal} kcal · {recipe.proteinG}g P · {recipe.carbsG}g C · {recipe.fatG}g F
           </p>
 
           {recipe.subtitle && (
@@ -193,12 +201,22 @@ export default function RecipeCardAnimated({
 
           <div className="h-px bg-border my-2.5" />
 
-          <p className="text-[12px] text-text-tertiary">
-            {previewIngredients.join(" · ")}
+          {/* Show ingredients with exact measurements */}
+          <div className="space-y-1">
+            {previewIngredients.map((ing) => (
+              <div key={ing.name} className="flex justify-between text-[12px]">
+                <span className="text-text-tertiary">{ing.name}</span>
+                <span className="font-mono text-[10px] text-text-secondary ml-2 shrink-0">
+                  {ing.quantity} {ing.unit}
+                </span>
+              </div>
+            ))}
             {moreCount > 0 && (
-              <span className="font-mono text-[10px] ml-1.5">+ {moreCount} more</span>
+              <span className="font-mono text-[10px] text-text-tertiary">
+                + {moreCount} more ingredients
+              </span>
             )}
-          </p>
+          </div>
         </div>
       </motion.div>
     </motion.div>

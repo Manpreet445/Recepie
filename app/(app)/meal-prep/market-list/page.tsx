@@ -1,7 +1,8 @@
 import Kicker from "@/components/shared/Kicker";
 import { mockMealPlan } from "@/lib/mocks/data";
 import type { Ingredient } from "@/types/recipe";
-import { Check } from "lucide-react";
+import { Check, ArrowLeft } from "lucide-react";
+import Link from "next/link";
 
 // Consolidate ingredients across all meals
 function consolidateIngredients(plan: typeof mockMealPlan): Map<string, { ingredient: Ingredient; totalQuantity: number }> {
@@ -49,6 +50,14 @@ export default function MarketListPage() {
 
   return (
     <div className="max-w-2xl mx-auto">
+      <Link
+        href="/meal-prep/protocol"
+        className="inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.1em] text-text-tertiary hover:text-teal transition-colors duration-300 mb-8"
+      >
+        <ArrowLeft className="w-3 h-3" />
+        PROTOCOL / BACK
+      </Link>
+
       <Kicker numeral="IV" className="mb-3">
         THE MARKET LIST
       </Kicker>
