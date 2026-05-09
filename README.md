@@ -115,4 +115,6 @@ Open [http://localhost:3000](http://localhost:3000) to view the app.
 
 ## License
 
-This project is private and not licensed for redistribution.
+© 2026. All Rights Reserved.
+
+This repository is public for portfolio demonstration purposes only. It is not licensed for use, modification, or redistribution by third parties.
