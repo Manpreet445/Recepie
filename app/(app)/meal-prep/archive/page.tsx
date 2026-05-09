@@ -74,20 +74,20 @@ export default function ArchivePage() {
         variants={itemVariants}
         className="mb-16 pb-12 border-b-[0.5px] border-white/20 text-center"
       >
-        <span className="kicker text-[10px] text-[#1D9E75] tracking-[0.2em] block mb-6">
+        <span className="kicker text-[10px] text-teal tracking-[0.2em] block mb-6">
           VI. THE ARCHIVE
         </span>
-        <h1 className="font-headline text-5xl md:text-6xl text-[#F2F0EA] mb-4 leading-tight">
+        <h1 className="font-headline text-5xl md:text-6xl text-text-primary mb-4 leading-tight">
           Your personal ledgers.
         </h1>
-        <p className="font-body text-lg text-[#9C9A92] max-w-md mx-auto leading-relaxed">
+        <p className="font-body text-lg text-text-secondary max-w-md mx-auto leading-relaxed">
           Review past protocols or initiate a new culinary sequence.
         </p>
       </motion.div>
 
       {loading ? (
         <motion.div variants={itemVariants} className="text-center py-20">
-          <span className="kicker text-[10px] text-[#9C9A92] tracking-[0.2em]">
+          <span className="kicker text-[10px] text-text-secondary tracking-[0.2em]">
             LOADING LEDGER…
           </span>
         </motion.div>
@@ -108,20 +108,20 @@ export default function ArchivePage() {
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#151514]/90 via-[#151514]/30 to-transparent pointer-events-none" />
               <div className="absolute bottom-0 left-0 p-6 z-10">
-                <span className="kicker text-[10px] text-[#1D9E75] block mb-2">
+                <span className="kicker text-[10px] text-teal block mb-2">
                   CURRENTLY ACTIVE
                 </span>
                 {activePlan ? (
                   <>
-                    <h2 className="font-headline text-3xl text-[#F2F0EA] leading-tight mb-2">
+                    <h2 className="font-headline text-3xl text-text-primary leading-tight mb-2">
                       {activePlan.title}
                     </h2>
-                    <span className="kicker text-[10px] text-[#9C9A92]">
+                    <span className="kicker text-[10px] text-text-secondary">
                       {formatDateRange(activePlan.createdAt, activePlan.durationDays)}
                     </span>
                   </>
                 ) : (
-                  <h2 className="font-headline text-2xl text-[#9C9A92] leading-tight">
+                  <h2 className="font-headline text-2xl text-text-secondary leading-tight">
                     No active protocol
                   </h2>
                 )}
@@ -133,17 +133,17 @@ export default function ArchivePage() {
               {activePlan ? (
                 <div className="flex justify-between items-center">
                   <span
-                    className="border-[0.5px] border-white/20 px-3 py-1 kicker text-[10px]"
+                    className="border-[0.5px] border-outline-variant px-3 py-1 kicker text-[10px]"
                     style={{ color: GOAL_COLOR[activePlan.goal] ?? "#9C9A92" }}
                   >
                     {activePlan.goal.toUpperCase()}
                   </span>
-                  <span className="kicker text-xs text-[#9C9A92]">
+                  <span className="kicker text-xs text-text-secondary">
                     {activePlan.macroTargets.kcal} KCAL / DAY
                   </span>
                 </div>
               ) : (
-                <span className="kicker text-[10px] text-[#9C9A92]">
+                <span className="kicker text-[10px] text-text-secondary">
                   Generate your first protocol below.
                 </span>
               )}
@@ -156,7 +156,7 @@ export default function ArchivePage() {
                 >
                   <Link
                     href="/meal-prep/protocol"
-                    className="inline-flex items-center gap-2 kicker text-[10px] text-[#1D9E75]"
+                    className="inline-flex items-center gap-2 kicker text-[10px] text-teal"
                   >
                     RESUME PROTOCOL
                     <motion.span
@@ -189,26 +189,26 @@ export default function ArchivePage() {
                   transition={{ duration: 0.3, ease: "easeOut" }}
                   className="border-[0.5px] border-white/20 p-4 shrink-0"
                 >
-                  <Plus className="w-5 h-5 text-[#1D9E75]" />
+                  <Plus className="w-5 h-5 text-teal" />
                 </motion.div>
 
                 <div>
-                  <p className="kicker text-xs text-[#F2F0EA] mb-1">
+                  <p className="kicker text-xs text-text-primary mb-1">
                     CREATE NEW PLAN
                   </p>
-                  <p className="font-body text-sm text-[#9C9A92] leading-relaxed">
+                  <p className="font-body text-sm text-text-secondary leading-relaxed">
                     Generate a new protocol from your dossier. AI-calibrated macros, ritual recipes.
                   </p>
                 </div>
 
-                <ArrowRight className="w-4 h-4 text-white/20 group-hover:text-[#1D9E75] ml-auto shrink-0 transition-colors duration-300" />
+                <ArrowRight className="w-4 h-4 text-white/20 group-hover:text-teal ml-auto shrink-0 transition-colors duration-300" />
               </motion.div>
             </Link>
 
             {/* Previous dossiers */}
             {previousPlans.length > 0 && (
               <div className="mt-16">
-                <p className="kicker text-[10px] text-[#9C9A92] mb-6 tracking-[0.2em]">
+                <p className="kicker text-[10px] text-text-secondary mb-6 tracking-[0.2em]">
                   PREVIOUS DOSSIERS
                 </p>
 
@@ -234,7 +234,7 @@ export default function ArchivePage() {
                           {formatDateRange(plan.createdAt, plan.durationDays)}
                         </span>
 
-                        <h3 className="font-headline text-2xl text-[#F2F0EA] flex-1">
+                        <h3 className="font-headline text-2xl text-text-primary flex-1">
                           {plan.title}
                         </h3>
 
@@ -248,7 +248,7 @@ export default function ArchivePage() {
                           <motion.span
                             variants={{
                               rest:  { x: 0, color: "rgba(255,255,255,0.3)" },
-                              hover: { x: 4, color: "#F2F0EA", transition: { duration: 0.4, ease: EASE } },
+                              hover: { x: 4, color: "#e6e6e6", transition: { duration: 0.4, ease: EASE } },
                             }}
                             className="kicker text-[10px] flex items-center gap-1"
                           >
@@ -268,10 +268,10 @@ export default function ArchivePage() {
               variants={itemVariants}
               className="mt-16 pt-6 border-t-[0.5px] border-white/10 flex items-center justify-between"
             >
-              <span className="kicker text-[10px] text-[#9C9A92]">
+              <span className="kicker text-[10px] text-text-secondary">
                 {plans.length} TOTAL PROTOCOL{plans.length !== 1 ? "S" : ""}
               </span>
-              <span className="kicker text-[10px] text-[#9C9A92]">
+              <span className="kicker text-[10px] text-text-secondary">
                 RECEPIE — ISSUE Nº 001
               </span>
             </motion.div>

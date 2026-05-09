@@ -1,17 +1,20 @@
-// image helper for getting recipe photos
-// using curated unsplash URLs and unsplash source API for dynamic AI-generated recipes
+/**
+ * Recipe image resolution utilities.
+ *
+ * Provides deterministic image URLs for recipe cards by first checking a
+ * curated map of hand-picked Unsplash photos, then falling back to keyword
+ * matching against a broader food photo pool.
+ */
 
 export type ImageSize = [width: number, height: number];
 
-// these are the sizes I use across the app
 export const IMAGE_SIZES = {
   hero: [1200, 820] as ImageSize,
   thumbnail: [400, 300] as ImageSize,
   small: [160, 120] as ImageSize,
 } as const;
 
-// hand-picked unsplash photos that match each recipe
-// I grabbed these by searching unsplash manually and copying the direct URLs
+/** Curated Unsplash photo URLs mapped to specific recipe search terms. */
 const CURATED_PHOTOS: Record<string, string> = {
   "miso glazed salmon soba bowl":
     "https://images.unsplash.com/photo-1580476262798-bddd9f4b7369?auto=format&fit=crop",
@@ -31,11 +34,14 @@ const CURATED_PHOTOS: Record<string, string> = {
     "https://images.unsplash.com/photo-1525351484163-7529414344d8?auto=format&fit=crop",
 };
 
-// returns a properly sized image URL for a recipe
-// checks the curated map first, falls back to unsplash source API for AI-generated recipes
+/**
+ * Resolve an image URL for a recipe by its `imageQuery` field.
+ *
+ * Checks the curated map first, then falls back to a generic food photo.
+ */
 export function recipeImage(
   imageQuery: string,
-  size: ImageSize = IMAGE_SIZES.thumbnail
+  size: ImageSize = IMAGE_SIZES.thumbnail,
 ): string {
   const [w, h] = size;
   const curated = CURATED_PHOTOS[imageQuery];
@@ -44,13 +50,10 @@ export function recipeImage(
     return `${curated}&w=${w}&h=${h}&q=80`;
   }
 
-  // fallback: use Unsplash source API with the recipe's imageQuery as the search term
-  // this gives us real, high-quality food photos matching the recipe description
-  const query = encodeURIComponent(imageQuery);
   return `https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=${w}&h=${h}&q=80`;
 }
 
-// broader food photo pool for AI-generated recipes — maps common food terms to unsplash photo IDs
+/** Broader food photo pool — maps common keywords to Unsplash photo IDs. */
 const FOOD_PHOTOS: Record<string, string> = {
   salmon:   "photo-1467003909585-2f8a72700288",
   chicken:  "photo-1598515214211-89d3c73ae83b",
@@ -83,22 +86,22 @@ const FOOD_PHOTOS: Record<string, string> = {
 };
 
 /**
- * Smarter image URL for AI-generated recipes.
- * Looks for food keywords in the imageQuery and picks a matching unsplash photo.
+ * Keyword-aware image resolver for AI-generated recipes.
+ *
+ * Checks the curated map, then scans the query for food keywords to select
+ * a relevant Unsplash photo. Falls back to a generic appetizing food image.
  */
 export function smartRecipeImage(
   imageQuery: string,
-  size: ImageSize = IMAGE_SIZES.thumbnail
+  size: ImageSize = IMAGE_SIZES.thumbnail,
 ): string {
   const [w, h] = size;
 
-  // 1. Check curated map first
   const curated = CURATED_PHOTOS[imageQuery];
   if (curated) {
     return `${curated}&w=${w}&h=${h}&q=80`;
   }
 
-  // 2. Match keywords from the imageQuery to our food photo pool
   const queryLower = imageQuery.toLowerCase();
   for (const [keyword, photoId] of Object.entries(FOOD_PHOTOS)) {
     if (keyword !== "default" && queryLower.includes(keyword)) {
@@ -106,6 +109,5 @@ export function smartRecipeImage(
     }
   }
 
-  // 3. Last resort: generic appetizing food photo
   return `https://images.unsplash.com/${FOOD_PHOTOS.default}?auto=format&fit=crop&w=${w}&h=${h}&q=80`;
 }

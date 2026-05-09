@@ -20,7 +20,7 @@ interface RecipeCardAnimatedProps {
   missingCount?: number;
 }
 
-// static version for users who prefer reduced motion
+/** Static fallback for users who prefer reduced motion. */
 function StaticRecipeCard({
   recipe,
   variant = "pantry",
@@ -28,8 +28,7 @@ function StaticRecipeCard({
   matchedCount,
   missingCount,
 }: RecipeCardAnimatedProps) {
-  const imageSize = variant === "protocol" ? IMAGE_SIZES.thumbnail : IMAGE_SIZES.thumbnail;
-  const imgUrl = smartRecipeImage(recipe.imageQuery, imageSize);
+  const imgUrl = smartRecipeImage(recipe.imageQuery, IMAGE_SIZES.thumbnail);
 
   return (
     <a
@@ -82,7 +81,7 @@ function StaticRecipeCard({
   );
 }
 
-// the main card component with hover peek + shared element transition
+/** Animated recipe card with hover-peek panel and shared-element transitions. */
 export default function RecipeCardAnimated({
   recipe,
   variant = "pantry",
@@ -106,10 +105,8 @@ export default function RecipeCardAnimated({
     );
   }
 
-  const imageSize = variant === "protocol" ? IMAGE_SIZES.thumbnail : IMAGE_SIZES.thumbnail;
-  const imgUrl = smartRecipeImage(recipe.imageQuery, imageSize);
+  const imgUrl = smartRecipeImage(recipe.imageQuery, IMAGE_SIZES.thumbnail);
 
-  // grab first 3 ingredients to show with measurements in the peek panel
   const previewIngredients = recipe.ingredients.slice(0, 4);
   const moreCount = Math.max(0, recipe.ingredients.length - 4);
 

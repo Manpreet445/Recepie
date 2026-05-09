@@ -1,7 +1,7 @@
 import { supabase } from "./supabase";
 import { MealPlan, ArchivedPlan } from "@/types/mealPlan";
 
-// Stable guest identity — persists across sessions without requiring auth
+/** Stable guest identity — persists in localStorage across sessions without requiring auth. */
 function guestId(): string {
   if (typeof window === "undefined") return "";
   let id = localStorage.getItem("recepie_guest_id");

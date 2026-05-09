@@ -4,7 +4,7 @@ import Link from "next/link";
 import { ArrowRight, Clock, Flame, Beef } from "lucide-react";
 import type { Recipe } from "@/types/recipe";
 
-// stat card for macros, kcal, etc.
+/** Stat card for displaying a single metric (macros, kcal, etc.). */
 interface MetaCardProps {
   kicker: string;
   value: string | number;
@@ -30,7 +30,7 @@ export function MetaCard({ kicker, value, detail, unit, className = "" }: MetaCa
   );
 }
 
-// big clickable card for the two main modes on the home page
+/** Large clickable navigation card used on the home dashboard. */
 interface ModeCardProps {
   title: string;
   subtitle: string;
@@ -75,7 +75,7 @@ export function ModeCard({
   );
 }
 
-// simple meal card (not animated — kept as fallback)
+/** Compact meal card without animations (used as a fallback). */
 interface MealCardProps {
   mealType: string;
   recipe: Recipe;
@@ -117,7 +117,7 @@ export function MealCard({ mealType, recipe }: MealCardProps) {
   );
 }
 
-// basic recipe card without animations (used on archive and older views)
+/** Basic recipe card without hover animations (archive and list views). */
 interface RecipeCardProps {
   recipe: Recipe;
   matchedCount?: number;

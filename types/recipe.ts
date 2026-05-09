@@ -1,10 +1,16 @@
-// recipe types — shared between meal plan and pantry features
+/** Recipe types — shared between meal plan and pantry features. */
+
+export interface IngredientPriceRange {
+  min: number;
+  max: number;
+}
 
 export interface Ingredient {
   name: string;
   quantity: string;
   unit: string;
   section: "base" | "spice" | "body" | "garnish" | "liquid";
+  estimatedPriceRange?: IngredientPriceRange;
 }
 
 export interface RitualStep {

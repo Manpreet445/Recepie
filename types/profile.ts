@@ -1,4 +1,4 @@
-// types for the user profile / dossier form
+/** User profile and dossier form types. */
 
 export type Sex = "male" | "female";
 
@@ -13,6 +13,8 @@ export type Goal = "cut" | "maintain" | "bulk";
 
 export type MacroFocus = "balanced" | "high_protein" | "low_carb";
 
+export type Cadence = "variety" | "4_3_split" | "uniformity";
+
 export interface DossierInput {
   age: number;
   sex: Sex;
@@ -24,6 +26,9 @@ export interface DossierInput {
   dietary: string[];
   allergies: string;
   cuisines: string[];
+  budgetMin: number;
+  budgetMax: number;
+  cadence: Cadence;
   durationDays: number;
   mealsPerDay: number;
 }

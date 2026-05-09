@@ -1,5 +1,12 @@
-// setting up the gemini client and the prompt for generating meal plans
-// I'm using the official google generative ai package here
+/**
+ * Gemini AI integration for meal plan generation.
+ *
+ * Uses Google's Generative AI SDK with structured JSON output to produce
+ * type-safe meal plans. The response schema enforces the exact shape
+ * expected by the MealPlan and Recipe interfaces.
+ *
+ * @see {@link https://ai.google.dev/gemini-api/docs}
+ */
 
 import { GoogleGenerativeAI, SchemaType } from "@google/generative-ai";
 import { DossierInput, MacroTargets } from "@/types/profile";
@@ -8,8 +15,7 @@ import { MealPlan } from "@/types/mealPlan";
 const apiKey = process.env.GEMINI_API_KEY;
 const genAI = new GoogleGenerativeAI(apiKey || "");
 
-// I'm using a strict json schema so gemini always returns exactly what the app expects
-// this matches the MealPlan and Recipe types I defined earlier
+/** Structured output schema — ensures type-safe responses from the Gemini API. */
 const mealPlanSchema = {
   description: "A comprehensive meal plan with recipes and nutrition data",
   type: SchemaType.OBJECT,
@@ -63,8 +69,16 @@ const mealPlanSchema = {
                           quantity: { type: SchemaType.STRING },
                           unit: { type: SchemaType.STRING },
                           section: { type: SchemaType.STRING },
+                          estimatedPriceRange: {
+                            type: SchemaType.OBJECT,
+                            properties: {
+                              min: { type: SchemaType.NUMBER },
+                              max: { type: SchemaType.NUMBER },
+                            },
+                            required: ["min", "max"],
+                          },
                         },
-                        required: ["name", "quantity", "unit", "section"],
+                        required: ["name", "quantity", "unit", "section", "estimatedPriceRange"],
                       },
                     },
                     ritual: {
@@ -113,25 +127,38 @@ const mealPlanSchema = {
         required: ["dayNumber", "meals", "dailyTotals"],
       },
     },
+    marketListEstimate: {
+      type: SchemaType.OBJECT,
+      properties: {
+        totalMin: { type: SchemaType.NUMBER },
+        totalMax: { type: SchemaType.NUMBER },
+      },
+      required: ["totalMin", "totalMax"],
+    },
   },
-  required: ["id", "title", "createdAt", "durationDays", "goal", "macroTargets", "days"],
+  required: ["id", "title", "createdAt", "durationDays", "goal", "macroTargets", "days", "marketListEstimate"],
+  // The Gemini SDK's TypeScript types don't fully align with the runtime
+  // schema format. This cast is safe — the schema is validated at generation time.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
 } as any;
 
-// I'm using gemini-1.5-flash-latest because it's fast and cheap for this kind of thing
+const modelName = process.env.GEMINI_MODEL || "gemini-flash-latest";
 const model = genAI.getGenerativeModel({
-  model: "gemini-flash-latest",
+  model: modelName,
   generationConfig: {
     responseMimeType: "application/json",
     responseSchema: mealPlanSchema,
   },
 });
 
-// the main function to generate a plan based on user dossier and target macros
+/** Generate a complete meal plan from a fully-constructed prompt string. */
 export async function generateMealPlan(prompt: string): Promise<MealPlan> {
   const currentApiKey = process.env.GEMINI_API_KEY;
   if (!currentApiKey) {
-    throw new Error("I forgot to set the GEMINI_API_KEY in the environment!");
+    throw new Error(
+      "Missing GEMINI_API_KEY environment variable. " +
+        "Set it in .env.local — see .env.example for reference.",
+    );
   }
 
   const result = await model.generateContent(prompt);
@@ -139,8 +166,19 @@ export async function generateMealPlan(prompt: string): Promise<MealPlan> {
   return JSON.parse(response.text()) as MealPlan;
 }
 
-// helper to build the prompt string with all the user's constraints
+/** Build the full prompt string from user dossier input and calculated macro targets. */
 export function buildMealPlanPrompt(input: DossierInput, targets: MacroTargets) {
+  const cadenceMap: Record<string, string> = {
+    variety: "MAXIMUM VARIETY",
+    "4_3_split": "4/3 SPLIT",
+    uniformity: "UNIFORMITY",
+  };
+  const cadenceLabel = cadenceMap[input.cadence] || "MAXIMUM VARIETY";
+
+  const budgetMin = input.budgetMin ?? 0;
+  const budgetMax = input.budgetMax ?? 0;
+  const hasBudget = budgetMin > 0 || budgetMax > 0;
+
   return `
     Act as a Michelin-star chef and clinical nutritionist who specializes in teaching home cooks.
     Create a ${input.durationDays}-day meal plan with ${input.mealsPerDay} meals per day.
@@ -152,6 +190,22 @@ export function buildMealPlanPrompt(input: DossierInput, targets: MacroTargets) 
     - Dietary: ${input.dietary.join(", ") || "No restrictions"}
     - Allergies: ${input.allergies || "None"}
     - Cuisines preferred: ${input.cuisines.join(", ") || "Global"}
+    
+    RULE 1 — CADENCE & REPETITION:
+    The user has selected a preparation cadence of: ${cadenceLabel}.
+    - If 'UNIFORMITY': You MUST generate only ONE unique day of meals, and explicitly duplicate those exact same meals for every single day in the days[] array. Each day object must still have its own dayNumber but the meals array must be identical.
+    - If '4/3 SPLIT': You MUST generate exactly TWO unique days of meals. Days 1 through 4 must contain EXACTLY the same meals (Batch 1). Days 5 through ${input.durationDays} must contain EXACTLY the same meals (Batch 2). If the plan is shorter than 5 days, use Batch 1 for all days.
+    - If 'MAXIMUM VARIETY': Generate completely unique meals for every day. No recipe should repeat across any day.
+    Do not change the JSON structure. Just duplicate the meal objects across the days[] array to reflect the batch-cooking repetition so the frontend UI renders correctly.
+    
+    ${hasBudget ? `RULE 2 — GROCERY BUDGET MATCHING:
+    The user has a strict weekly grocery budget range of $${budgetMin} to $${budgetMax}.
+    When generating ingredients, assign a realistic estimated price range (min, max in USD) based on average North American grocery costs.
+    Every ingredient object MUST include an "estimatedPriceRange" with "min" and "max" numbers.
+    Ensure the total estimated cost of all UNIQUE ingredients combined falls within ±$10 of the user's budget range.
+    At the top level of the response, include a "marketListEstimate" object with "totalMin" and "totalMax" representing the sum of all unique ingredient price ranges.` : `RULE 2 — GROCERY BUDGET:
+    No budget constraint specified. Still include realistic "estimatedPriceRange" (min, max in USD) for every ingredient based on average North American grocery costs.
+    Include a "marketListEstimate" at the top level with "totalMin" and "totalMax" summing all unique ingredient price ranges.`}
     
     Rules for your protocol:
     1. Every recipe must be real, high-quality, and detailed.

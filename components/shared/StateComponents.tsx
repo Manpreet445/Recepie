@@ -2,7 +2,7 @@
 
 import { Loader2, AlertCircle, RefreshCw, Inbox } from "lucide-react";
 
-// loading spinner or skeleton cards
+/** Loading indicator — supports spinner and skeleton variants. */
 interface LoadingStateProps {
   variant?: "spinner" | "skeleton";
   message?: string;
@@ -34,7 +34,7 @@ export function LoadingState({
   );
 }
 
-// shown when there's no content yet
+/** Empty state placeholder with optional customizable messaging. */
 interface EmptyStateProps {
   title?: string;
   message?: string;
@@ -57,7 +57,7 @@ export function EmptyState({
   );
 }
 
-// error state with optional retry button
+/** Error state with optional retry callback. */
 interface ErrorStateProps {
   message?: string;
   onRetry?: () => void;

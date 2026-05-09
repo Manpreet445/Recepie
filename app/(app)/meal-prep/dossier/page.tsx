@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import Kicker from "@/components/shared/Kicker";
 import SectionDivider from "@/components/shared/SectionDivider";
@@ -33,6 +34,12 @@ const macroOptions = [
 const dietaryOptions = ["Vegetarian", "Vegan", "Pescatarian", "Keto", "Paleo", "Gluten-Free", "Dairy-Free"];
 const cuisineOptions = ["Italian", "Japanese", "Mexican", "Indian", "Mediterranean", "Thai", "Korean", "American", "French"];
 
+const cadenceOptions = [
+  { value: "variety", label: "MAXIMUM VARIETY", desc: "No repeats" },
+  { value: "4_3_split", label: "4/3 SPLIT", desc: "Batch cook twice a week" },
+  { value: "uniformity", label: "UNIFORMITY", desc: "Eat the same daily" },
+];
+
 export default function DossierPage() {
   const router = useRouter();
   const [isGenerating, setIsGenerating] = useState(false);
@@ -49,6 +56,9 @@ export default function DossierPage() {
     dietary: [] as string[],
     allergies: "",
     cuisines: [] as string[],
+    budgetMin: "",
+    budgetMax: "",
+    cadence: "4_3_split",
     durationDays: 3,
     mealsPerDay: 3,
   });
@@ -73,11 +83,16 @@ export default function DossierPage() {
         macroFocus: form.macroFocus as DossierInput["macroFocus"],
       });
 
-      // 2. Call our bridge API
+      // 2. Call our bridge API — parse budget strings to numbers for the backend
+      const payload = {
+        ...form,
+        budgetMin: parseFloat(form.budgetMin) || 0,
+        budgetMax: parseFloat(form.budgetMax) || 0,
+      };
       const response = await fetch("/api/generate-plan", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ input: form, targets }),
+        body: JSON.stringify({ input: payload, targets }),
       });
 
       if (!response.ok) {
@@ -317,6 +332,73 @@ export default function DossierPage() {
               >
                 {c}
               </button>
+            ))}
+          </div>
+        </section>
+
+        <SectionDivider />
+
+        {/* Weekly Allocation (Budget Range) */}
+        <section>
+          <h2 className="font-label text-[10px] uppercase tracking-[0.2em] text-text-tertiary mb-4">
+            Weekly Allocation
+          </h2>
+          <div className="flex items-baseline gap-6">
+            <div className="flex-1 border-b-[0.5px] border-white/20 pb-2 flex items-baseline gap-2 transition-colors focus-within:border-teal">
+              <span className="font-label text-sm text-text-tertiary">$</span>
+              <input
+                type="text"
+                inputMode="decimal"
+                placeholder="MIN"
+                value={form.budgetMin}
+                onChange={(e) => setForm({ ...form, budgetMin: e.target.value })}
+                className="font-body bg-transparent border-none focus:ring-0 focus:outline-none p-0 text-base text-text-primary placeholder:text-text-tertiary w-full"
+              />
+            </div>
+            <span className="font-label text-[10px] uppercase tracking-[0.15em] text-text-tertiary">to</span>
+            <div className="flex-1 border-b-[0.5px] border-white/20 pb-2 flex items-baseline gap-2 transition-colors focus-within:border-teal">
+              <span className="font-label text-sm text-text-tertiary">$</span>
+              <input
+                type="text"
+                inputMode="decimal"
+                placeholder="MAX"
+                value={form.budgetMax}
+                onChange={(e) => setForm({ ...form, budgetMax: e.target.value })}
+                className="font-body bg-transparent border-none focus:ring-0 focus:outline-none p-0 text-base text-text-primary placeholder:text-text-tertiary w-full"
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* Preparation Cadence */}
+        <section>
+          <h2 className="font-label text-[10px] uppercase tracking-[0.2em] text-text-tertiary mb-1">
+            Preparation Cadence
+          </h2>
+          <p className="font-body text-[12px] text-text-secondary mb-3">
+            Determine your batch-cooking frequency.
+          </p>
+          <div className="flex flex-col gap-2">
+            {cadenceOptions.map((opt) => (
+              <motion.button
+                type="button"
+                key={opt.value}
+                onClick={() => setForm({ ...form, cadence: opt.value })}
+                whileHover={{ scale: 0.995 }}
+                whileTap={{ scale: 0.98 }}
+                className={`font-body w-full text-left p-4 border-[0.5px] rounded-none text-[13px] transition-colors flex justify-between items-center group cursor-pointer ${
+                  form.cadence === opt.value
+                    ? "bg-bg-card border-teal text-text-primary"
+                    : "bg-transparent border-white/20 text-text-secondary hover:border-white/40"
+                }`}
+              >
+                <span>{opt.label}</span>
+                <span className={`text-[11px] ${
+                  form.cadence === opt.value ? "text-teal" : "text-text-tertiary"
+                }`}>
+                  {opt.desc}
+                </span>
+              </motion.button>
             ))}
           </div>
         </section>

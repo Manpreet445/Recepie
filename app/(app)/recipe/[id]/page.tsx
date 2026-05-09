@@ -3,7 +3,6 @@
 import { use, useState, useEffect } from "react";
 import { notFound, useRouter } from "next/navigation";
 import { motion, useScroll, useSpring, AnimatePresence } from "framer-motion";
-import Link from "next/link";
 import { mockRecipes } from "@/lib/mocks/data";
 import { smartRecipeImage, IMAGE_SIZES } from "@/lib/images";
 import { Clock, ArrowLeft, Users, AlertTriangle, Lightbulb, Sparkles } from "lucide-react";
@@ -48,7 +47,6 @@ const SECTION_LABELS: Record<string, string> = {
 };
 
 // Accent color for recipe detail — uses the green/forest theme
-const ACCENT = "var(--forest, #00694c)";
 const ACCENT_HEX = "#00694c";
 const ACCENT_SUBTLE = "#004d37";
 
@@ -100,16 +98,20 @@ export default function RecipeDetailPage({
   const [servingMultiplier, setServingMultiplier] = useState(1);
 
   useEffect(() => {
+    // eslint-disable-next-line
     if (recipe) { setLoaded(true); return; }
     // Recipe not in mocks — search the latest generated plan
     const planRecipe = getPlanRecipes().find((r) => r.id === id);
+     
     if (planRecipe) setRecipe(planRecipe);
+     
     setLoaded(true);
   }, [id, recipe]);
 
   // Initialize multiplier from plan duration
   useEffect(() => {
     const duration = getPlanDuration();
+    // eslint-disable-next-line
     if (duration > 1) setServingMultiplier(duration);
   }, []);
 
@@ -261,7 +263,6 @@ export default function RecipeDetailPage({
             />
 
             <div className="overflow-hidden w-full aspect-[3/4] md:aspect-[4/5] relative z-10">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
               <motion.img
                 src={heroUrl}
                 alt={recipe.imageAlt}

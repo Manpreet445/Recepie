@@ -1,4 +1,4 @@
-// meal plan types
+/** Meal plan, day, and archive types. */
 
 import { Recipe } from "./recipe";
 import { MacroTargets } from "./profile";
@@ -14,6 +14,11 @@ export interface PlanDay {
   dailyTotals: MacroTargets;
 }
 
+export interface MarketListEstimate {
+  totalMin: number;
+  totalMax: number;
+}
+
 export interface MealPlan {
   id: string;
   title: string;
@@ -22,6 +27,7 @@ export interface MealPlan {
   goal: string;
   macroTargets: MacroTargets;
   days: PlanDay[];
+  marketListEstimate?: MarketListEstimate;
 }
 
 export interface ArchivedPlan {

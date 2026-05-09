@@ -2,8 +2,7 @@
 
 import { LayoutGroup } from "framer-motion";
 
-// wraps the app in framer motion's LayoutGroup so shared
-// element transitions work across different pages
+/** Wraps the app tree in Framer Motion's LayoutGroup for shared-element transitions. */
 export default function MotionProvider({
   children,
 }: {
