@@ -77,7 +77,7 @@ components/
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/recepie.git
+git clone https://github.com/Manpreet445/recepie.git
 cd recepie
 
 # Install dependencies
