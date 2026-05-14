@@ -2,6 +2,8 @@
 
 > A dark-mode culinary atelier for home cooks. Generate AI-powered meal plans, match pantry ingredients to recipes, and master your nutrition.
 
+**🔗 Live demo:** [recepie-app-gilt.vercel.app](https://recepie-app-gilt.vercel.app)
+
 [![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?logo=typescript)](https://typescriptlang.org/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-38bdf8?logo=tailwindcss)](https://tailwindcss.com/)
