@@ -10,6 +10,18 @@
 [![Gemini AI](https://img.shields.io/badge/Gemini-AI-4285F4?logo=google)](https://ai.google.dev/)
 [![Supabase](https://img.shields.io/badge/Supabase-Postgres-3FCF8E?logo=supabase)](https://supabase.com/)
 
+## Preview
+
+![Landing](docs/landing.png)
+
+| Preferences | Plan Instructions | Recipe Instructions |
+|-------------|-------------------|---------------------|
+| ![Preferences](docs/preferences.png) | ![Instructions](docs/instructions.png) | ![Instructions 2](docs/instructions-2.png) |
+
+| Generated Protocol | Shopping List |
+|--------------------|---------------|
+| ![Protocol](docs/protocol.png) | ![Shopping List](docs/shopping-list.png) |
+
 ---
 
 ## Features
