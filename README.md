@@ -142,9 +142,6 @@ Open [http://localhost:3000](http://localhost:3000) to view the app.
 - [ ] Mobile-optimized layout pass
 
 ## License
-© 2026. All Rights Reserved...
-
-## License
 
 © 2026. All Rights Reserved.
 
