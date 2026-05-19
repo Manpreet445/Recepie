@@ -127,6 +127,23 @@ Open [http://localhost:3000](http://localhost:3000) to view the app.
 | `pnpm lint` | Run ESLint |
 | `pnpm test` | Run Vitest test suite |
 
+## Scripts
+[your scripts table]
+
+## Roadmap
+- [x] AI meal plan generation (Gemini structured output)
+- [x] TDEE & macro calculator
+- [x] Multi-day plan with budget + cadence constraints
+- [x] Auto-aggregated shopping list
+- [ ] Supabase persistence for plan history
+- [ ] Pantry-to-recipe matching (in progress)
+- [ ] Kitchen journal & recipe notes
+- [ ] Recipe rating + favorites
+- [ ] Mobile-optimized layout pass
+
+## License
+© 2026. All Rights Reserved...
+
 ## License
 
 © 2026. All Rights Reserved.
