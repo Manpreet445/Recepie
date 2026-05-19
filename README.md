@@ -127,8 +127,6 @@ Open [http://localhost:3000](http://localhost:3000) to view the app.
 | `pnpm lint` | Run ESLint |
 | `pnpm test` | Run Vitest test suite |
 
-## Scripts
-[your scripts table]
 
 ## Roadmap
 - [x] AI meal plan generation (Gemini structured output)
