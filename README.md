@@ -14,9 +14,9 @@
 
 ![Landing](docs/landing.png)
 
-| Preferences | Plan Instructions | Recipe Instructions |
-|-------------|-------------------|---------------------|
-| ![Preferences](docs/preferences.png) | ![Instructions](docs/instructions.png) | ![Instructions 2](docs/instructions-2.png) |
+| Preferences | Recipe Detail | Recipe Steps |
+|-------------|---------------|--------------|
+| ![Preferences](docs/preferences.png) | ![Recipe detail](docs/instructions-2.png) | ![Recipe steps](docs/instructions.png) |
 
 | Generated Protocol | Shopping List |
 |--------------------|---------------|
