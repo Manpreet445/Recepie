@@ -1,14 +1,22 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import Link from "next/link";
+import {
+  ChevronDown,
+  RefreshCw,
+  Archive,
+  ShoppingCart,
+  ListChecks,
+  ArrowLeft,
+} from "lucide-react";
 import Kicker from "@/components/shared/Kicker";
 import SectionDivider from "@/components/shared/SectionDivider";
 import StatusBadge from "@/components/shared/StatusBadge";
 import { MetaCard } from "@/components/shared/Cards";
 import RecipeCardAnimated from "@/components/shared/RecipeCardAnimated";
+import { LoadingState } from "@/components/shared/StateComponents";
 import { mockMealPlan } from "@/lib/mocks/data";
-import { ChevronDown, ChevronUp, RefreshCw, Archive, ShoppingCart, ListChecks, ArrowLeft } from "lucide-react";
-import Link from "next/link";
 import { MealPlan } from "@/types/mealPlan";
 import { loadLatestPlan } from "@/lib/plans";
 import type { Ingredient } from "@/types/recipe";
@@ -27,11 +35,7 @@ function aggregateIngredients(plan: MealPlan): (Ingredient & { scaledQty: string
           existing.totalQty += qty;
           existing.count += 1;
         } else {
-          map.set(key, {
-            ingredient: ing,
-            totalQty: qty,
-            count: 1,
-          });
+          map.set(key, { ingredient: ing, totalQty: qty, count: 1 });
         }
       }
     }
@@ -44,6 +48,35 @@ function aggregateIngredients(plan: MealPlan): (Ingredient & { scaledQty: string
       scaledQty: totalQty % 1 === 0 ? String(totalQty) : totalQty.toFixed(1),
     }));
 }
+
+// Known section labels + fallback for anything the AI generates
+const SECTION_LABELS: Record<string, string> = {
+  body: "Proteins & produce",
+  protein: "Proteins & produce",
+  proteins: "Proteins & produce",
+  produce: "Produce & vegetables",
+  vegetable: "Vegetables",
+  vegetables: "Vegetables",
+  base: "Base & grains",
+  grains: "Base & grains",
+  grain: "Base & grains",
+  starch: "Base & starches",
+  spice: "Spice & seasoning",
+  spices: "Spice & seasoning",
+  seasoning: "Spice & seasoning",
+  liquid: "Oils & liquids",
+  liquids: "Oils & liquids",
+  oil: "Oils & liquids",
+  oils: "Oils & liquids",
+  dairy: "Dairy",
+  garnish: "Garnish & herbs",
+  herbs: "Garnish & herbs",
+  other: "Other ingredients",
+};
+
+/** Shared styling for the secondary action row. */
+const actionClass =
+  "kicker inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-pill border border-line bg-surface px-4 text-[10px] text-ink-soft transition-colors hover:border-line-strong hover:text-ink";
 
 export default function ProtocolPage() {
   const [mounted, setMounted] = useState(false);
@@ -59,7 +92,12 @@ export default function ProtocolPage() {
       // Prefer sessionStorage (just-generated plan) over a Supabase round-trip
       const session = sessionStorage.getItem("latest_plan");
       if (session) {
-        try { setPlan(JSON.parse(session)); return; } catch { /* fall through */ }
+        try {
+          setPlan(JSON.parse(session));
+          return;
+        } catch {
+          /* fall through */
+        }
       }
 
       // Fall back to the most recently saved plan from Supabase
@@ -91,227 +129,224 @@ export default function ProtocolPage() {
   const ingredientsBySection = useMemo(() => {
     const groups: Record<string, typeof allIngredients> = {};
     for (const ing of allIngredients) {
-      // Normalize the section key to lowercase, fall back to "other"
       const section = (ing.section || "other").toLowerCase().trim();
-      if (!groups[section]) groups[section] = [];
-      groups[section].push(ing);
+      (groups[section] ??= []).push(ing);
     }
     return groups;
   }, [allIngredients]);
 
-  // Known section labels + fallback for anything the AI generates
-  const SECTION_LABELS: Record<string, string> = {
-    body:      "Proteins & Produce",
-    protein:   "Proteins & Produce",
-    proteins:  "Proteins & Produce",
-    produce:   "Produce & Vegetables",
-    vegetable: "Vegetables",
-    vegetables: "Vegetables",
-    base:      "Base & Grains",
-    grains:    "Base & Grains",
-    grain:     "Base & Grains",
-    starch:    "Base & Starches",
-    spice:     "Spice & Seasoning",
-    spices:    "Spice & Seasoning",
-    seasoning: "Spice & Seasoning",
-    liquid:    "Oils & Liquids",
-    liquids:   "Oils & Liquids",
-    oil:       "Oils & Liquids",
-    oils:      "Oils & Liquids",
-    dairy:     "Dairy",
-    garnish:   "Garnish & Herbs",
-    herbs:     "Garnish & Herbs",
-    other:     "Other Ingredients",
-  };
-
-  // Use whatever sections actually exist in the data
   const sectionKeys = useMemo(() => Object.keys(ingredientsBySection), [ingredientsBySection]);
 
-  const goalBadgeVariant = plan.goal === "cut" ? "deficit" : plan.goal === "bulk" ? "surplus" : "maintenance";
+  const goalBadgeVariant =
+    plan.goal === "cut" ? "deficit" : plan.goal === "bulk" ? "surplus" : "maintenance";
 
-  if (!mounted) return null;
+  if (!mounted) return <LoadingState message="Loading your protocol…" />;
+
+  const pct = (grams: number, kcalPerG: number) =>
+    Math.round(((grams * kcalPerG) / plan.macroTargets.kcal) * 100);
 
   return (
     <div>
       <Link
         href="/meal-prep/dossier"
-        className="inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.1em] text-text-tertiary hover:text-teal transition-colors duration-300 mb-8"
+        className="kicker mb-8 inline-flex min-h-11 items-center gap-2 text-[10px] text-ink-faint transition-colors hover:text-terracotta"
       >
-        <ArrowLeft className="w-3 h-3" />
-        DOSSIER / BACK
+        <ArrowLeft aria-hidden="true" className="h-3.5 w-3.5" />
+        Back to dossier
       </Link>
 
-      <div className="flex items-start justify-between mb-6">
-        <div>
-          <Kicker numeral="III" className="mb-3">
-            THE PROTOCOL
-          </Kicker>
-          <h1 className="font-serif text-3xl md:text-4xl text-text-primary mb-2">
-            {plan.title}
-          </h1>
-          <div className="flex items-center gap-3">
-            <StatusBadge variant={goalBadgeVariant}>
-              {plan.goal}
-            </StatusBadge>
-            <span className="text-xs text-text-tertiary">
-              {plan.durationDays} days · {plan.days[0]?.meals.length} meals/day
-            </span>
-          </div>
+      {/* ── Header ──────────────────────────────────────────────────────── */}
+      <header className="mb-10">
+        <Kicker numeral="III" className="mb-5">
+          The protocol
+        </Kicker>
+        <h1 className="display mb-4 text-4xl text-ink md:text-5xl">{plan.title}</h1>
+        <div className="flex flex-wrap items-center gap-3">
+          <StatusBadge variant={goalBadgeVariant}>{plan.goal}</StatusBadge>
+          <span className="numeric text-sm text-ink-faint">
+            {plan.durationDays} days · {plan.days[0]?.meals.length} meals/day
+          </span>
         </div>
-      </div>
+      </header>
 
-      {/* Macro Targets */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+      {/* ── Macro targets ───────────────────────────────────────────────── */}
+      <section aria-label="Daily macro targets" className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-4">
         <MetaCard kicker="Energy" value={plan.macroTargets.kcal} unit="kcal" detail="Daily target" />
-        <MetaCard kicker="Protein" value={plan.macroTargets.proteinG} unit="g" detail={`${Math.round((plan.macroTargets.proteinG * 4 / plan.macroTargets.kcal) * 100)}% of kcal`} />
-        <MetaCard kicker="Carbs" value={plan.macroTargets.carbsG} unit="g" detail={`${Math.round((plan.macroTargets.carbsG * 4 / plan.macroTargets.kcal) * 100)}% of kcal`} />
-        <MetaCard kicker="Fat" value={plan.macroTargets.fatG} unit="g" detail={`${Math.round((plan.macroTargets.fatG * 9 / plan.macroTargets.kcal) * 100)}% of kcal`} />
-      </div>
+        <MetaCard
+          kicker="Protein"
+          value={plan.macroTargets.proteinG}
+          unit="g"
+          detail={`${pct(plan.macroTargets.proteinG, 4)}% of kcal`}
+        />
+        <MetaCard
+          kicker="Carbs"
+          value={plan.macroTargets.carbsG}
+          unit="g"
+          detail={`${pct(plan.macroTargets.carbsG, 4)}% of kcal`}
+        />
+        <MetaCard
+          kicker="Fat"
+          value={plan.macroTargets.fatG}
+          unit="g"
+          detail={`${pct(plan.macroTargets.fatG, 9)}% of kcal`}
+        />
+      </section>
 
-      {/* Actions */}
-      <div className="flex items-center gap-3 mb-8 flex-wrap">
-        <button className="flex items-center gap-2 px-4 py-2 bg-bg-card border border-border font-mono text-[11px] uppercase tracking-[0.1em] text-text-secondary hover:border-border-strong hover:text-text-primary transition-colors cursor-pointer">
-          <RefreshCw className="w-3.5 h-3.5" />
-          Regenerate
-        </button>
-        <button className="flex items-center gap-2 px-4 py-2 bg-bg-card border border-border font-mono text-[11px] uppercase tracking-[0.1em] text-text-secondary hover:border-border-strong hover:text-text-primary transition-colors cursor-pointer">
-          <Archive className="w-3.5 h-3.5" />
-          Save to Archive
-        </button>
+      {/* ── Actions ─────────────────────────────────────────────────────── */}
+      <div className="mb-10 flex flex-wrap items-center gap-2.5">
         <Link
           href="/meal-prep/market-list"
-          className="flex items-center gap-2 px-4 py-2 bg-teal/10 border border-teal/20 font-mono text-[11px] uppercase tracking-[0.1em] text-teal hover:bg-teal/15 transition-colors"
+          className="kicker inline-flex min-h-11 items-center gap-2 rounded-pill bg-terracotta px-5 text-[10px] text-white transition-colors hover:bg-terracotta-deep"
         >
-          <ShoppingCart className="w-3.5 h-3.5" />
-          Market List
+          <ShoppingCart aria-hidden="true" className="h-3.5 w-3.5" />
+          Market list
         </Link>
         <button
+          type="button"
           onClick={() => setShowManifest((v) => !v)}
-          className={`flex items-center gap-2 px-4 py-2 border font-mono text-[11px] uppercase tracking-[0.1em] transition-colors cursor-pointer ${
+          aria-expanded={showManifest}
+          aria-controls="manifest-panel"
+          className={
             showManifest
-              ? "bg-teal/10 border-teal/30 text-teal"
-              : "bg-bg-card border-border text-text-secondary hover:border-border-strong hover:text-text-primary"
-          }`}
+              ? "kicker inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-pill border border-herb-edge bg-herb-wash px-4 text-[10px] text-herb-ink transition-colors"
+              : actionClass
+          }
         >
-          <ListChecks className="w-3.5 h-3.5" />
-          Full Manifest
+          <ListChecks aria-hidden="true" className="h-3.5 w-3.5" />
+          Full manifest
         </button>
+        <Link href="/meal-prep/dossier" className={actionClass}>
+          <RefreshCw aria-hidden="true" className="h-3.5 w-3.5" />
+          Regenerate
+        </Link>
+        <Link href="/meal-prep/archive" className={actionClass}>
+          <Archive aria-hidden="true" className="h-3.5 w-3.5" />
+          Archive
+        </Link>
       </div>
 
-      {/* ── FULL MANIFEST — aggregated ingredients for the entire plan ──── */}
+      {/* ── Full manifest ───────────────────────────────────────────────── */}
       {showManifest && (
-        <div className="mb-10">
-          <div className="bg-bg-card border border-teal/20 overflow-hidden">
-            <div className="px-6 py-5 border-b border-border flex items-center justify-between">
-              <div>
-                <h2 className="font-serif text-xl text-text-primary">
-                  The Manifest
-                </h2>
-                <p className="text-xs text-text-tertiary mt-1">
-                  Total ingredients for all {plan.durationDays} days — quantities are aggregated across every meal.
-                </p>
-              </div>
-              <div className="flex items-center gap-3">
-                {checkedItems.length > 0 && (
-                  <span className="font-mono text-[10px] text-teal tracking-wider">
-                    {checkedItems.length}/{allIngredients.length} CHECKED
-                  </span>
-                )}
-                {checkedItems.length > 0 && (
-                  <button
-                    onClick={() => setCheckedItems([])}
-                    className="font-mono text-[10px] text-text-tertiary hover:text-text-primary transition-colors cursor-pointer tracking-wider"
-                  >
-                    RESET
-                  </button>
-                )}
-              </div>
+        <section id="manifest-panel" className="card mb-10 overflow-hidden">
+          <div className="flex flex-wrap items-start justify-between gap-4 border-b border-line bg-surface-muted px-6 py-5">
+            <div>
+              <h2 className="font-headline text-xl text-ink">The manifest</h2>
+              <p className="mt-1 text-xs text-ink-faint">
+                Every ingredient across all {plan.durationDays} days, summed.
+              </p>
             </div>
-
-            <div className="px-6 py-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-6">
-                {sectionKeys.map((section) => {
-                  const items = ingredientsBySection[section];
-                  if (!items?.length) return null;
-                  return (
-                    <div key={section}>
-                      <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-teal pb-2 mb-3 border-b border-border">
-                        {SECTION_LABELS[section] || section.charAt(0).toUpperCase() + section.slice(1)}
-                      </p>
-                      <div className="space-y-0">
-                        {items.map((ing) => {
-                          const key = `${ing.name}-${ing.unit}`;
-                          const checked = checkedItems.includes(key);
-                          return (
-                            <button
-                              key={key}
-                              onClick={() => toggleIngredient(key)}
-                              className={`w-full flex justify-between items-baseline gap-4 py-2.5 border-b border-white/5 cursor-pointer group text-left transition-opacity duration-200 ${
-                                checked ? "opacity-30" : "opacity-100"
-                              }`}
-                            >
-                              <span
-                                className={`text-sm transition-colors duration-200 ${
-                                  checked
-                                    ? "line-through text-text-tertiary"
-                                    : "text-text-primary group-hover:text-teal"
-                                }`}
-                              >
-                                {ing.name}
-                              </span>
-                              <span className="font-mono text-[11px] text-text-secondary shrink-0 tabular-nums">
-                                {ing.scaledQty}&nbsp;{ing.unit}
-                              </span>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+            <div className="flex items-center gap-3">
+              <span className="numeric text-xs text-ink-soft">
+                {checkedItems.length}/{allIngredients.length} checked
+              </span>
+              {checkedItems.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setCheckedItems([])}
+                  className="kicker min-h-9 cursor-pointer rounded-pill px-3 text-[10px] text-ink-faint transition-colors hover:bg-surface hover:text-ink"
+                >
+                  Reset
+                </button>
+              )}
             </div>
           </div>
-        </div>
+
+          <div className="grid gap-x-10 gap-y-8 px-6 py-6 md:grid-cols-2 lg:grid-cols-3">
+            {sectionKeys.map((section) => {
+              const items = ingredientsBySection[section];
+              if (!items?.length) return null;
+
+              return (
+                <div key={section}>
+                  <h3 className="kicker mb-3 border-b border-line pb-2 text-[9px] text-terracotta">
+                    {SECTION_LABELS[section] ??
+                      section.charAt(0).toUpperCase() + section.slice(1)}
+                  </h3>
+                  <ul>
+                    {items.map((ing) => {
+                      const key = `${ing.name}-${ing.unit}`;
+                      const checked = checkedItems.includes(key);
+                      return (
+                        <li key={key}>
+                          <label className="flex min-h-11 cursor-pointer items-baseline gap-3 border-b border-line py-2.5">
+                            <input
+                              type="checkbox"
+                              checked={checked}
+                              onChange={() => toggleIngredient(key)}
+                              className="h-4 w-4 shrink-0 cursor-pointer self-center accent-[var(--herb)]"
+                            />
+                            <span
+                              className={`wrap-anywhere flex-1 text-sm transition-colors ${
+                                checked ? "text-ink-faint line-through" : "text-ink"
+                              }`}
+                            >
+                              {ing.name}
+                            </span>
+                            <span className="numeric shrink-0 text-[11px] text-ink-soft">
+                              {ing.scaledQty}&nbsp;{ing.unit}
+                            </span>
+                          </label>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              );
+            })}
+          </div>
+        </section>
       )}
 
       <SectionDivider />
 
-      {/* Day Accordions */}
-      <div className="space-y-4">
+      {/* ── Days ────────────────────────────────────────────────────────── */}
+      <section aria-label="Plan by day" className="space-y-4">
         {plan.days.map((day) => {
           const isExpanded = expandedDays.includes(day.dayNumber);
+          const panelId = `day-panel-${day.dayNumber}`;
+
           return (
-            <div key={day.dayNumber} className="bg-bg-card border border-border overflow-hidden">
-              <button
-                onClick={() => toggleDay(day.dayNumber)}
-                className="w-full flex items-center justify-between p-5 hover:bg-bg-elevated/30 transition-colors cursor-pointer"
-              >
-                <div className="flex items-center gap-4">
-                  <span className="font-serif text-xl text-text-primary">
-                    Day {day.dayNumber}
+            <div key={day.dayNumber} className="card overflow-hidden">
+              <h3>
+                <button
+                  type="button"
+                  onClick={() => toggleDay(day.dayNumber)}
+                  aria-expanded={isExpanded}
+                  aria-controls={panelId}
+                  className="flex w-full cursor-pointer items-center justify-between gap-4 p-5 text-left transition-colors hover:bg-surface-muted"
+                >
+                  <span className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+                    <span className="font-headline text-xl text-ink">Day {day.dayNumber}</span>
+                    <span className="numeric text-[11px] text-ink-faint">
+                      {day.dailyTotals.kcal} kcal · P{day.dailyTotals.proteinG}g · C
+                      {day.dailyTotals.carbsG}g · F{day.dailyTotals.fatG}g
+                    </span>
                   </span>
-                  <span className="font-mono text-[10px] text-text-tertiary tracking-wider">
-                    {day.dailyTotals.kcal} kcal · P{day.dailyTotals.proteinG}g · C{day.dailyTotals.carbsG}g · F{day.dailyTotals.fatG}g
-                  </span>
-                </div>
-                {isExpanded ? (
-                  <ChevronUp className="w-4 h-4 text-text-tertiary" />
-                ) : (
-                  <ChevronDown className="w-4 h-4 text-text-tertiary" />
-                )}
-              </button>
+                  <ChevronDown
+                    aria-hidden="true"
+                    className={`h-4 w-4 shrink-0 text-ink-faint transition-transform duration-200 ${
+                      isExpanded ? "rotate-180" : ""
+                    }`}
+                  />
+                </button>
+              </h3>
+
               {isExpanded && (
-                <div className="px-5 pb-5 space-y-3">
+                <div id={panelId} className="space-y-3 border-t border-line px-5 pb-5 pt-5">
                   {day.meals.map((meal) => (
-                    <RecipeCardAnimated key={meal.recipe.id} recipe={meal.recipe} variant="protocol" mealType={meal.mealType} />
+                    <RecipeCardAnimated
+                      key={meal.recipe.id}
+                      recipe={meal.recipe}
+                      variant="protocol"
+                      mealType={meal.mealType}
+                    />
                   ))}
                 </div>
               )}
             </div>
           );
         })}
-      </div>
+      </section>
     </div>
   );
 }

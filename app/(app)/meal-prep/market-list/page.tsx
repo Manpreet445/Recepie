@@ -1,11 +1,14 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import Kicker from "@/components/shared/Kicker";
 import { mockMealPlan } from "@/lib/mocks/data";
 import type { Ingredient } from "@/types/recipe";
-import { Check, ArrowLeft } from "lucide-react";
-import Link from "next/link";
 
-// Consolidate ingredients across all meals
-function consolidateIngredients(plan: typeof mockMealPlan): Map<string, { ingredient: Ingredient; totalQuantity: number }> {
+/** Sum every ingredient across the plan, keyed by name and unit. */
+function consolidateIngredients(plan: typeof mockMealPlan) {
   const map = new Map<string, { ingredient: Ingredient; totalQuantity: number }>();
 
   for (const day of plan.days) {
@@ -26,77 +29,139 @@ function consolidateIngredients(plan: typeof mockMealPlan): Map<string, { ingred
 }
 
 const sectionLabels: Record<string, string> = {
-  base: "Base & Grains",
-  spice: "Spices & Seasonings",
-  body: "Proteins & Produce",
-  garnish: "Garnishes & Herbs",
-  liquid: "Oils & Liquids",
+  base: "Base & grains",
+  spice: "Spices & seasonings",
+  body: "Proteins & produce",
+  garnish: "Garnishes & herbs",
+  liquid: "Oils & liquids",
 };
 
-export default function MarketListPage() {
-  const consolidated = consolidateIngredients(mockMealPlan);
-  const entries = Array.from(consolidated.values());
+const SECTION_ORDER = ["body", "base", "spice", "liquid", "garnish"] as const;
 
-  // Group by section
-  const groups = entries.reduce(
-    (acc, item) => {
-      const section = item.ingredient.section;
-      if (!acc[section]) acc[section] = [];
-      acc[section].push(item);
-      return acc;
-    },
-    {} as Record<string, typeof entries>
-  );
+export default function MarketListPage() {
+  const [checked, setChecked] = useState<Set<string>>(new Set());
+
+  const { groups, total } = useMemo(() => {
+    const entries = Array.from(consolidateIngredients(mockMealPlan).values());
+    const grouped = entries.reduce(
+      (acc, item) => {
+        const section = item.ingredient.section;
+        (acc[section] ??= []).push(item);
+        return acc;
+      },
+      {} as Record<string, typeof entries>
+    );
+    return { groups: grouped, total: entries.length };
+  }, []);
+
+  const toggle = (key: string) =>
+    setChecked((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) {
+        next.delete(key);
+      } else {
+        next.add(key);
+      }
+      return next;
+    });
+
+  const done = checked.size;
+  const progress = total > 0 ? Math.round((done / total) * 100) : 0;
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="mx-auto max-w-2xl">
       <Link
         href="/meal-prep/protocol"
-        className="inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.1em] text-text-tertiary hover:text-teal transition-colors duration-300 mb-8"
+        className="kicker mb-8 inline-flex min-h-11 items-center gap-2 text-[10px] text-ink-faint transition-colors hover:text-terracotta"
       >
-        <ArrowLeft className="w-3 h-3" />
-        PROTOCOL / BACK
+        <ArrowLeft aria-hidden="true" className="h-3.5 w-3.5" />
+        Back to protocol
       </Link>
 
-      <Kicker numeral="IV" className="mb-3">
-        THE MARKET LIST
+      <Kicker numeral="IV" className="mb-5">
+        The market list
       </Kicker>
-      <h1 className="font-serif text-3xl md:text-4xl text-text-primary mb-2">
-        Shopping list.
-      </h1>
-      <p className="text-sm text-text-secondary mb-8">
-        Ingredients consolidated across your {mockMealPlan.durationDays}-day protocol.
-        Quantities have been summed by ingredient.
+      <h1 className="display mb-4 text-4xl text-ink md:text-5xl">Shopping list.</h1>
+      <p className="mb-8 text-lg leading-relaxed text-ink-soft">
+        Every ingredient across your {mockMealPlan.durationDays}-day plan, summed and
+        grouped by aisle.
       </p>
 
-      <div className="space-y-8">
-        {(["body", "base", "spice", "liquid", "garnish"] as const).map((section) => {
+      {/* Progress — ticking items off is the whole point of the page. */}
+      <div className="card mb-10 p-5">
+        <div className="mb-3 flex items-baseline justify-between">
+          <span className="kicker text-[10px] text-ink-faint">Gathered</span>
+          <span className="numeric text-sm text-ink">
+            {done}
+            <span className="text-ink-faint">/{total}</span>
+          </span>
+        </div>
+        <div
+          role="meter"
+          aria-valuenow={progress}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label={`${done} of ${total} items gathered`}
+          className="h-2 overflow-hidden rounded-pill bg-surface-muted"
+        >
+          <div
+            className="h-full rounded-pill bg-herb transition-[width] duration-300"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+      </div>
+
+      <div className="space-y-10">
+        {SECTION_ORDER.map((section) => {
           const items = groups[section];
           if (!items || items.length === 0) return null;
 
           return (
-            <section key={section}>
-              <h2 className="font-mono text-[10px] uppercase tracking-[0.2em] text-teal mb-4">
-                {sectionLabels[section] || section}
+            <section key={section} aria-labelledby={`section-${section}`}>
+              <h2
+                id={`section-${section}`}
+                className="kicker mb-4 flex items-center gap-3 text-[10px] text-terracotta"
+              >
+                {sectionLabels[section] ?? section}
+                <span aria-hidden="true" className="h-px flex-1 bg-line" />
+                <span className="numeric text-ink-faint">{items.length}</span>
               </h2>
-              <div className="space-y-1">
-                {items.map((item) => (
-                  <label
-                    key={`${item.ingredient.name}-${item.ingredient.unit}`}
-                    className="flex items-center gap-3 p-3 bg-bg-card border border-border rounded-lg hover:border-border-strong transition-colors group cursor-pointer"
-                  >
-                    <div className="w-5 h-5 rounded border border-border-strong flex items-center justify-center group-hover:border-teal/40 transition-colors">
-                      <Check className="w-3 h-3 text-transparent group-hover:text-teal/30" />
-                    </div>
-                    <span className="flex-1 text-sm text-text-primary">
-                      {item.ingredient.name}
-                    </span>
-                    <span className="font-mono text-xs text-text-secondary">
-                      {Math.round(item.totalQuantity * 10) / 10} {item.ingredient.unit}
-                    </span>
-                  </label>
-                ))}
-              </div>
+
+              <ul className="space-y-1.5">
+                {items.map((item) => {
+                  const key = `${item.ingredient.name}-${item.ingredient.unit}`;
+                  const isChecked = checked.has(key);
+
+                  return (
+                    <li key={key}>
+                      <label
+                        className={`flex min-h-12 cursor-pointer items-center gap-3 rounded-sm border px-4 py-2.5 transition-colors ${
+                          isChecked
+                            ? "border-line bg-surface-muted"
+                            : "border-line bg-surface hover:border-line-strong"
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => toggle(key)}
+                          className="h-5 w-5 shrink-0 cursor-pointer accent-[var(--herb)]"
+                        />
+                        <span
+                          className={`wrap-anywhere flex-1 text-sm transition-colors ${
+                            isChecked ? "text-ink-faint line-through" : "text-ink"
+                          }`}
+                        >
+                          {item.ingredient.name}
+                        </span>
+                        <span className="numeric shrink-0 text-xs text-ink-soft">
+                          {Math.round(item.totalQuantity * 10) / 10} {item.ingredient.unit}
+                        </span>
+                      </label>
+                    </li>
+                  );
+                })}
+              </ul>
             </section>
           );
         })}

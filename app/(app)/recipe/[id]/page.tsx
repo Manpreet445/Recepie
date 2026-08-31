@@ -2,53 +2,56 @@
 
 import { use, useState, useEffect } from "react";
 import { notFound, useRouter } from "next/navigation";
-import { motion, useScroll, useSpring, AnimatePresence } from "framer-motion";
+import Image from "next/image";
+import { motion, useScroll, useSpring, useReducedMotion } from "framer-motion";
+import {
+  Clock,
+  ArrowLeft,
+  Users,
+  AlertTriangle,
+  Lightbulb,
+  Sparkles,
+  Flame,
+} from "lucide-react";
 import { mockRecipes } from "@/lib/mocks/data";
 import { smartRecipeImage, IMAGE_SIZES } from "@/lib/images";
-import { Clock, ArrowLeft, Users, AlertTriangle, Lightbulb, Sparkles } from "lucide-react";
 import type { Recipe } from "@/types/recipe";
 
-// ── Motion constants ───────────────────────────────────────────────────────
 const EASE: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
 const containerVariants = {
-  hidden:  {},
-  visible: { transition: { staggerChildren: 0.15 } },
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.08 } },
 };
 
 const itemVariants = {
-  hidden:  { opacity: 0, y: 30 },
-  visible: { opacity: 1, y: 0, transition: { duration: 1.4, ease: EASE } },
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: EASE } },
 };
 
-// ── Data helpers ───────────────────────────────────────────────────────────
 const SECTION_LABELS: Record<string, string> = {
-  body:       "Proteins & Produce",
-  protein:    "Proteins & Produce",
-  proteins:   "Proteins & Produce",
-  produce:    "Produce & Vegetables",
-  vegetable:  "Vegetables",
+  body: "Proteins & produce",
+  protein: "Proteins & produce",
+  proteins: "Proteins & produce",
+  produce: "Produce & vegetables",
+  vegetable: "Vegetables",
   vegetables: "Vegetables",
-  base:       "Base & Grains",
-  grains:     "Base & Grains",
-  grain:      "Base & Grains",
-  starch:     "Base & Starches",
-  spice:      "Spice & Seasoning",
-  spices:     "Spice & Seasoning",
-  seasoning:  "Spice & Seasoning",
-  liquid:     "Oils & Liquids",
-  liquids:    "Oils & Liquids",
-  oil:        "Oils & Liquids",
-  oils:       "Oils & Liquids",
-  dairy:      "Dairy",
-  garnish:    "Garnish & Herbs",
-  herbs:      "Garnish & Herbs",
-  other:      "Other Ingredients",
+  base: "Base & grains",
+  grains: "Base & grains",
+  grain: "Base & grains",
+  starch: "Base & starches",
+  spice: "Spice & seasoning",
+  spices: "Spice & seasoning",
+  seasoning: "Spice & seasoning",
+  liquid: "Oils & liquids",
+  liquids: "Oils & liquids",
+  oil: "Oils & liquids",
+  oils: "Oils & liquids",
+  dairy: "Dairy",
+  garnish: "Garnish & herbs",
+  herbs: "Garnish & herbs",
+  other: "Other ingredients",
 };
-
-// Accent color for recipe detail — uses the green/forest theme
-const ACCENT_HEX = "#00694c";
-const ACCENT_SUBTLE = "#004d37";
 
 /** Pull every recipe from the latest generated plan stored in sessionStorage */
 function getPlanRecipes(): Recipe[] {
@@ -59,8 +62,7 @@ function getPlanRecipes(): Recipe[] {
     const plan = JSON.parse(raw);
     if (!plan?.days) return [];
     return plan.days.flatMap(
-      (day: { meals?: { recipe: Recipe }[] }) =>
-        (day.meals ?? []).map((m) => m.recipe)
+      (day: { meals?: { recipe: Recipe }[] }) => (day.meals ?? []).map((m) => m.recipe)
     );
   } catch {
     return [];
@@ -80,15 +82,64 @@ function getPlanDuration(): number {
   }
 }
 
-// ── Page ───────────────────────────────────────────────────────────────────
+/**
+ * Step callout. Each kind carries its own icon and label, so the meaning does
+ * not depend on the border colour alone.
+ */
+function Callout({
+  kind,
+  children,
+}: {
+  kind: "warning" | "tip" | "optional";
+  children: React.ReactNode;
+}) {
+  const config = {
+    warning: {
+      icon: AlertTriangle,
+      label: "Watch out",
+      classes: "border-danger/25 bg-danger-wash",
+      accent: "border-l-danger",
+      ink: "text-danger",
+    },
+    tip: {
+      icon: Lightbulb,
+      label: "Tip",
+      classes: "border-herb-edge bg-herb-wash",
+      accent: "border-l-herb",
+      ink: "text-herb-ink",
+    },
+    optional: {
+      icon: Sparkles,
+      label: "Optional upgrade",
+      classes: "border-ember/20 bg-ember-wash",
+      accent: "border-l-ember",
+      ink: "text-ember-ink",
+    },
+  }[kind];
+
+  const Icon = config.icon;
+
+  return (
+    <div
+      className={`flex gap-3 rounded-sm border border-l-[3px] p-4 ${config.classes} ${config.accent}`}
+    >
+      <Icon aria-hidden="true" className={`mt-0.5 h-4 w-4 shrink-0 ${config.ink}`} />
+      <div className="min-w-0">
+        <p className={`kicker mb-1 text-[9px] ${config.ink}`}>{config.label}</p>
+        <p className="text-sm leading-relaxed text-ink-soft">{children}</p>
+      </div>
+    </div>
+  );
+}
+
 export default function RecipeDetailPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
-
   const router = useRouter();
+  const reduce = useReducedMotion();
 
   // First try mock recipes, then sessionStorage plan recipes
   const [recipe, setRecipe] = useState<Recipe | null>(
@@ -96,15 +147,16 @@ export default function RecipeDetailPage({
   );
   const [loaded, setLoaded] = useState(!!recipe);
   const [servingMultiplier, setServingMultiplier] = useState(1);
+  const [checkedItems, setCheckedItems] = useState<string[]>([]);
 
   useEffect(() => {
     // eslint-disable-next-line
     if (recipe) { setLoaded(true); return; }
     // Recipe not in mocks — search the latest generated plan
     const planRecipe = getPlanRecipes().find((r) => r.id === id);
-     
+
     if (planRecipe) setRecipe(planRecipe);
-     
+
     setLoaded(true);
   }, [id, recipe]);
 
@@ -114,8 +166,6 @@ export default function RecipeDetailPage({
     // eslint-disable-next-line
     if (duration > 1) setServingMultiplier(duration);
   }, []);
-
-  const [checkedItems, setCheckedItems] = useState<string[]>([]);
 
   const { scrollYProgress } = useScroll();
   const scaleX = useSpring(scrollYProgress, {
@@ -132,12 +182,9 @@ export default function RecipeDetailPage({
       prev.includes(key) ? prev.filter((i) => i !== key) : [...prev, key]
     );
 
-  const heroUrl = smartRecipeImage(recipe.imageQuery, IMAGE_SIZES.hero);
-
   const ingredientGroups = recipe.ingredients.reduce(
     (acc, ing) => {
-      if (!acc[ing.section]) acc[ing.section] = [];
-      acc[ing.section].push(ing);
+      (acc[ing.section] ??= []).push(ing);
       return acc;
     },
     {} as Record<string, typeof recipe.ingredients>
@@ -151,395 +198,282 @@ export default function RecipeDetailPage({
     return scaled % 1 === 0 ? String(scaled) : scaled.toFixed(1);
   }
 
+  const totalTime = recipe.prepMinutes + recipe.cookMinutes;
+
   return (
     <>
-      {/* ── Green ambient scrollbar ─────────────────────────────────── */}
+      {/* Reading progress */}
       <motion.div
-        style={{ scaleX, transformOrigin: "0%", background: `linear-gradient(90deg, ${ACCENT_HEX}, ${ACCENT_SUBTLE})` }}
-        className="fixed top-0 left-0 right-0 h-[2px] z-[100] pointer-events-none"
+        style={{ scaleX, transformOrigin: "0%" }}
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-x-0 top-0 z-[100] h-[3px] bg-terracotta"
       />
 
       <motion.div
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className="max-w-[1440px] mx-auto"
+        variants={reduce ? undefined : containerVariants}
+        initial={reduce ? undefined : "hidden"}
+        animate={reduce ? undefined : "visible"}
       >
-
-        {/* ── Back ──────────────────────────────────────────────────── */}
-        <motion.div variants={itemVariants} className="mb-12">
+        <motion.div variants={itemVariants} className="mb-10">
           <button
+            type="button"
             onClick={() => router.back()}
-            className="inline-flex items-center gap-2 kicker text-[10px] text-text-tertiary hover:text-teal transition-colors duration-300 cursor-pointer"
+            className="kicker inline-flex min-h-11 cursor-pointer items-center gap-2 text-[10px] text-ink-faint transition-colors hover:text-terracotta"
           >
-            <ArrowLeft className="w-3 h-3" />
-            BACK
+            <ArrowLeft aria-hidden="true" className="h-3.5 w-3.5" />
+            Back
           </button>
         </motion.div>
 
-        {/* ── Hero: text left + image right ─────────────────────────── */}
-        <section className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 mb-28 items-start">
+        {/* ── Hero ────────────────────────────────────────────────────── */}
+        <section className="mb-20 grid items-start gap-10 lg:mb-28 lg:grid-cols-2 lg:gap-16">
+          <motion.div variants={itemVariants}>
+            <p className="kicker mb-6 text-[10px] text-terracotta">Recipe</p>
 
-          {/* Left — editorial text block */}
-          <motion.div variants={itemVariants} className="lg:pt-4">
-            <span className="kicker text-[10px] text-teal block mb-10">
-              RECIPE DETAIL
-            </span>
-
-            <h1 className="font-headline text-5xl md:text-6xl lg:text-7xl leading-[1.0] tracking-tight text-[#F2F0EA] mb-4">
+            <h1 className="display mb-4 text-4xl text-ink sm:text-5xl lg:text-6xl">
               {recipe.title}
             </h1>
 
             {recipe.subtitle && (
-              <p className="font-headline italic text-xl text-[#9C9A92] leading-snug mb-12">
-                {recipe.subtitle}
-              </p>
+              <p className="mb-10 text-lg leading-relaxed text-ink-soft">{recipe.subtitle}</p>
             )}
 
-            {/* Meta row */}
-            <div className="border-t-[0.5px] border-white/20 pt-8 mt-8 grid grid-cols-3 gap-8">
-              <div>
-                <span className="kicker text-[9px] text-[#9C9A92] block mb-2">
-                  ACTIVE TIME
-                </span>
-                <span className="font-headline italic text-2xl text-[#F2F0EA]">
-                  {recipe.prepMinutes}m
-                </span>
-              </div>
-              <div>
-                <span className="kicker text-[9px] text-[#9C9A92] block mb-2">
-                  TOTAL TIME
-                </span>
-                <span className="font-headline italic text-2xl text-[#F2F0EA]">
-                  {recipe.prepMinutes + recipe.cookMinutes}m
-                </span>
-              </div>
-              <div>
-                <span className="kicker text-[9px] text-[#9C9A92] block mb-2">
-                  YIELD
-                </span>
-                <span className="font-headline italic text-2xl text-[#F2F0EA]">
-                  {recipe.servings}&nbsp;srv
-                </span>
-              </div>
-            </div>
-
-            {/* Energy + macros */}
-            <div className="border-t-[0.5px] border-white/20 pt-6 mt-6 flex gap-8 flex-wrap">
+            {/* Timing */}
+            <dl className="grid grid-cols-3 gap-6 border-t border-line pt-6">
               {[
-                { label: "ENERGY / SRV",  val: `${recipe.kcal} kcal` },
-                { label: "PROTEIN / SRV", val: `${recipe.proteinG}g` },
-                { label: "CARBS / SRV",   val: `${recipe.carbsG}g` },
-                { label: "FAT / SRV",     val: `${recipe.fatG}g` },
+                { label: "Active", value: `${recipe.prepMinutes}m` },
+                { label: "Total", value: `${totalTime}m` },
+                { label: "Yield", value: `${recipe.servings} srv` },
               ].map((m) => (
                 <div key={m.label}>
-                  <span className="kicker text-[9px] text-[#9C9A92] block mb-1">
-                    {m.label}
-                  </span>
-                  <span className="font-label text-sm text-[#F2F0EA]">{m.val}</span>
+                  <dt className="kicker mb-1.5 text-[9px] text-ink-faint">{m.label}</dt>
+                  <dd className="numeric text-2xl font-semibold text-ink">{m.value}</dd>
                 </div>
               ))}
-            </div>
+            </dl>
 
-            {/* Tags */}
-            <div className="mt-8 flex flex-wrap gap-2">
-              {recipe.tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="kicker text-[9px] text-[#9C9A92] border-[0.5px] border-white/20 px-3 py-1"
-                >
-                  {tag}
-                </span>
+            {/* Macros */}
+            <dl className="mt-6 flex flex-wrap gap-x-8 gap-y-3 border-t border-line pt-6">
+              {[
+                { label: "Energy", value: `${recipe.kcal}`, unit: "kcal" },
+                { label: "Protein", value: `${recipe.proteinG}`, unit: "g" },
+                { label: "Carbs", value: `${recipe.carbsG}`, unit: "g" },
+                { label: "Fat", value: `${recipe.fatG}`, unit: "g" },
+              ].map((m) => (
+                <div key={m.label}>
+                  <dt className="kicker mb-1 text-[9px] text-ink-faint">{m.label} / srv</dt>
+                  <dd className="numeric text-base text-ink">
+                    {m.value}
+                    <span className="ml-0.5 text-xs text-ink-faint">{m.unit}</span>
+                  </dd>
+                </div>
               ))}
-            </div>
+            </dl>
+
+            {recipe.tags.length > 0 && (
+              <ul className="mt-8 flex flex-wrap gap-2">
+                {recipe.tags.map((tag) => (
+                  <li
+                    key={tag}
+                    className="rounded-pill border border-line-strong bg-surface px-3 py-1 text-xs text-ink-soft"
+                  >
+                    {tag}
+                  </li>
+                ))}
+              </ul>
+            )}
           </motion.div>
 
-          {/* Right — cinematic image that properly fills the frame */}
           <motion.div variants={itemVariants} className="relative">
-            {/* Decorative offset box with green accent */}
-            <div
-              className="absolute inset-0 translate-x-4 translate-y-4 -z-10"
-              style={{ background: ACCENT_SUBTLE, opacity: 0.3 }}
-            />
-
-            <div className="overflow-hidden w-full aspect-[3/4] md:aspect-[4/5] relative z-10">
-              <motion.img
-                src={heroUrl}
+            <div className="card relative aspect-[4/5] overflow-hidden p-0 md:aspect-[4/5]">
+              <Image
+                src={smartRecipeImage(recipe.imageQuery, IMAGE_SIZES.hero)}
                 alt={recipe.imageAlt}
-                className="w-full h-full object-cover"
-                style={{ objectPosition: "center center" }}
-                whileHover={{ scale: 1.03 }}
-                transition={{ duration: 2, ease: EASE }}
+                fill
+                priority
+                className="object-cover"
+                sizes="(max-width: 1024px) 100vw, 50vw"
               />
-              {/* Bottom readability scrim */}
-              <div className="absolute inset-0 bg-gradient-to-t from-[#151514]/60 via-transparent to-transparent pointer-events-none" />
-
-              {/* Floating cuisine badge */}
               {recipe.cuisines.length > 0 && (
-                <div className="absolute bottom-6 left-6 flex gap-2">
+                <ul className="absolute bottom-5 left-5 flex flex-wrap gap-2">
                   {recipe.cuisines.map((c) => (
-                    <span
+                    <li
                       key={c}
-                      className="kicker text-[9px] bg-black/60 backdrop-blur-sm text-white/90 px-3 py-1.5 border border-white/10"
+                      className="kicker rounded-pill bg-paper/90 px-3 py-1.5 text-[9px] text-ink backdrop-blur-sm"
                     >
                       {c}
-                    </span>
+                    </li>
                   ))}
-                </div>
+                </ul>
               )}
             </div>
           </motion.div>
-
         </section>
 
-        {/* ── Manifest + Ritual ─────────────────────────────────────── */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-0">
-
-          {/* ── The Manifest (sticky left) ─────────────────────────── */}
-          <motion.div
+        {/* ── Manifest + Ritual ───────────────────────────────────────── */}
+        <div className="grid gap-12 lg:grid-cols-12 lg:gap-16">
+          {/* Manifest */}
+          <motion.aside
             variants={itemVariants}
-            className="lg:col-span-4 lg:sticky lg:top-32 self-start mb-16 lg:mb-0"
+            aria-labelledby="manifest-heading"
+            className="self-start lg:col-span-4 lg:sticky lg:top-28"
           >
-            <div
-              className="bg-[#1a1a19] p-8"
-              style={{ borderLeft: `2px solid ${ACCENT_HEX}`, borderTop: "0.5px solid rgba(255,255,255,0.2)" }}
-            >
-              <h2 className="font-headline text-3xl text-teal mb-2">
-                The Manifest
-              </h2>
-              <p className="font-body text-xs text-[#9C9A92] mb-4 leading-relaxed">
-                Tap to cross off as you prep. Quantities shown per serving.
-              </p>
+            <div className="card overflow-hidden">
+              <div className="border-b border-line bg-surface-muted p-6">
+                <h2 id="manifest-heading" className="font-headline text-2xl text-ink">
+                  The manifest
+                </h2>
+                <p className="mt-1 text-xs leading-relaxed text-ink-faint">
+                  Tick items off as you prep.
+                </p>
 
-              {/* Serving multiplier */}
-              <div className="flex items-center gap-3 mb-6 pb-4 border-b border-white/10">
-                <Users className="w-4 h-4 text-teal" />
-                <span className="font-mono text-[10px] text-[#9C9A92] tracking-wider">SERVINGS</span>
-                <div className="flex items-center gap-1 ml-auto">
-                  {[1, 2, 3, 4].map((n) => (
-                    <button
-                      key={n}
-                      onClick={() => setServingMultiplier(n)}
-                      className={`w-8 h-8 font-mono text-sm transition-colors cursor-pointer border ${
-                        servingMultiplier === n
-                          ? "bg-teal/15 border-teal/40 text-teal"
-                          : "border-white/10 text-[#9C9A92] hover:border-white/20 hover:text-text-primary"
-                      }`}
-                    >
-                      {n}×
-                    </button>
-                  ))}
+                <div className="mt-5 flex flex-wrap items-center gap-3">
+                  <span className="kicker inline-flex items-center gap-2 text-[10px] text-ink-soft">
+                    <Users aria-hidden="true" className="h-3.5 w-3.5" />
+                    Batch
+                  </span>
+                  <div role="group" aria-label="Batch multiplier" className="ml-auto flex gap-1">
+                    {[1, 2, 3, 4].map((n) => (
+                      <button
+                        key={n}
+                        type="button"
+                        onClick={() => setServingMultiplier(n)}
+                        aria-pressed={servingMultiplier === n}
+                        className={`numeric h-11 w-11 cursor-pointer rounded-sm border text-sm transition-colors ${
+                          servingMultiplier === n
+                            ? "border-terracotta bg-terracotta-wash text-terracotta"
+                            : "border-line bg-surface text-ink-soft hover:border-line-strong hover:text-ink"
+                        }`}
+                      >
+                        {n}×
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
 
-              <div className="space-y-7">
+              <div className="space-y-6 p-6">
                 {Object.keys(ingredientGroups).map((section) => {
                   const items = ingredientGroups[section];
                   if (!items?.length) return null;
+
                   return (
                     <div key={section}>
-                      <p className="kicker text-[9px] text-teal pb-2 mb-2 border-b-[0.5px] border-white/10">
-                        {SECTION_LABELS[section.toLowerCase()] || section.charAt(0).toUpperCase() + section.slice(1)}
-                      </p>
-                      <div className="space-y-0">
+                      <h3 className="kicker mb-2 border-b border-line pb-2 text-[9px] text-terracotta">
+                        {SECTION_LABELS[section.toLowerCase()] ??
+                          section.charAt(0).toUpperCase() + section.slice(1)}
+                      </h3>
+                      <ul>
                         {items.map((ing) => {
                           const key = `${section}-${ing.name}`;
                           const checked = checkedItems.includes(key);
                           return (
-                            <motion.div
-                              key={ing.name}
-                              role="button"
-                              tabIndex={0}
-                              onClick={() => toggleItem(key)}
-                              onKeyDown={(e) => e.key === "Enter" && toggleItem(key)}
-                              whileHover={{ x: 6, color: "#F2F0EA" }}
-                              whileTap={{ scale: 0.98 }}
-                              animate={{ opacity: checked ? 0.3 : 1 }}
-                              transition={{ duration: 0.4, ease: "easeOut" }}
-                              className="flex justify-between items-baseline gap-4 py-3 border-b-[0.5px] border-white/10 cursor-pointer group outline-none"
-                            >
-                              <span
-                                className={`font-body text-sm transition-colors duration-200 ${
-                                  checked
-                                    ? "line-through text-[#9C9A92]"
-                                    : "text-[#e6e6e6]"
-                                }`}
-                              >
-                                {ing.name}
-                              </span>
-                              <span className="font-mono text-[11px] text-[#9C9A92] shrink-0 tabular-nums">
-                                {scaleQty(ing.quantity)}&nbsp;{ing.unit}
-                              </span>
-                            </motion.div>
+                            <li key={ing.name}>
+                              <label className="flex min-h-11 cursor-pointer items-baseline gap-3 border-b border-line py-2.5">
+                                <input
+                                  type="checkbox"
+                                  checked={checked}
+                                  onChange={() => toggleItem(key)}
+                                  className="h-4 w-4 shrink-0 cursor-pointer self-center accent-[var(--herb)]"
+                                />
+                                <span
+                                  className={`wrap-anywhere flex-1 text-sm transition-colors ${
+                                    checked ? "text-ink-faint line-through" : "text-ink"
+                                  }`}
+                                >
+                                  {ing.name}
+                                </span>
+                                <span className="numeric shrink-0 text-[11px] text-ink-soft">
+                                  {scaleQty(ing.quantity)}&nbsp;{ing.unit}
+                                </span>
+                              </label>
+                            </li>
                           );
                         })}
-                      </div>
+                      </ul>
                     </div>
                   );
                 })}
               </div>
 
-              {/* Progress counter */}
-              <AnimatePresence>
-                {checkedItems.length > 0 && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.5, ease: EASE }}
-                    className="overflow-hidden"
+              {checkedItems.length > 0 && (
+                <div className="flex items-center justify-between gap-3 border-t border-line bg-surface-muted px-6 py-4">
+                  <span className="numeric text-xs text-herb-ink">
+                    {checkedItems.length}/{recipe.ingredients.length} prepped
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setCheckedItems([])}
+                    className="kicker min-h-9 cursor-pointer rounded-pill px-3 text-[10px] text-ink-faint transition-colors hover:bg-surface hover:text-ink"
                   >
-                    <div className="flex items-center justify-between mt-6 pt-4 border-t-[0.5px] border-white/20">
-                      <span className="kicker text-[10px] text-teal">
-                        {checkedItems.length}/{recipe.ingredients.length} PREPPED
-                      </span>
-                      <button
-                        onClick={() => setCheckedItems([])}
-                        className="kicker text-[10px] text-[#9C9A92] hover:text-[#F2F0EA] transition-colors cursor-pointer"
-                      >
-                        RESET
-                      </button>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                    Reset
+                  </button>
+                </div>
+              )}
             </div>
-          </motion.div>
+          </motion.aside>
 
-          {/* ── The Ritual (right) ─────────────────────────────────── */}
-          <div className="lg:col-span-8 lg:pl-20 space-y-0">
-            <motion.span
+          {/* Ritual */}
+          <div className="lg:col-span-8">
+            <motion.h2
               variants={itemVariants}
-              className="kicker text-[10px] text-teal block mb-16"
+              className="kicker mb-10 text-[10px] text-terracotta"
             >
-              THE RITUAL
-            </motion.span>
+              The ritual
+            </motion.h2>
 
-            {recipe.ritual.map((step) => (
-              <motion.div
-                key={step.stepNumber}
-                variants={itemVariants}
-                className="flex gap-10 pb-16 border-b-[0.5px] border-white/10 last:border-b-0 last:pb-0 mb-16 last:mb-0"
-              >
-                {/* Magnetic number */}
-                <motion.div
-                  whileHover={{ x: 8, color: ACCENT_HEX }}
-                  transition={{ duration: 0.8, ease: EASE }}
-                  className="shrink-0 pt-1"
-                  style={{ color: "#2a2a28" }}
+            <ol className="space-y-12">
+              {recipe.ritual.map((step) => (
+                <motion.li
+                  key={step.stepNumber}
+                  variants={itemVariants}
+                  className="flex gap-5 border-b border-line pb-12 last:border-b-0 last:pb-0 sm:gap-8"
                 >
-                  <span className="font-headline text-7xl leading-none select-none">
+                  <span
+                    aria-hidden="true"
+                    className="numeric shrink-0 text-4xl font-semibold leading-none text-line-strong sm:text-6xl"
+                  >
                     {String(step.stepNumber).padStart(2, "0")}
                   </span>
-                </motion.div>
 
-                {/* Step content */}
-                <div className="pt-3 flex-1">
-                  <h3 className="font-headline text-2xl text-[#F2F0EA] mb-4 leading-tight">
-                    {step.title}
-                  </h3>
-                  <p className="font-body text-lg text-[#9C9A92] leading-[1.8]">
-                    {step.instruction}
-                  </p>
-                  {step.durationMinutes && (
-                    <div className="flex items-center gap-2 mt-5">
-                      <Clock className="w-3 h-3 text-teal" />
-                      <span className="kicker text-[10px] text-[#9C9A92]">
-                        {step.durationMinutes} MIN
-                      </span>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="mb-3 font-headline text-2xl leading-tight text-ink">
+                      {step.title}
+                    </h3>
+                    <p className="text-lg leading-relaxed text-ink-soft">{step.instruction}</p>
+
+                    {step.durationMinutes && (
+                      <p className="kicker mt-4 inline-flex items-center gap-2 rounded-pill bg-surface-muted px-3 py-1.5 text-[10px] text-ink-soft">
+                        <Clock aria-hidden="true" className="h-3 w-3" />
+                        {step.durationMinutes} min
+                      </p>
+                    )}
+
+                    <div className="mt-5 space-y-3">
+                      {step.warning && <Callout kind="warning">{step.warning}</Callout>}
+                      {step.tip && <Callout kind="tip">{step.tip}</Callout>}
+                      {step.optional && <Callout kind="optional">{step.optional}</Callout>}
                     </div>
-                  )}
-
-                  {/* ── Beginner-friendly callouts ──────────────────── */}
-                  <div className="mt-5 space-y-3">
-                    {step.warning && (
-                      <div
-                        className="flex gap-3 p-4"
-                        style={{
-                          background: "rgba(217, 79, 79, 0.06)",
-                          borderLeft: "2px solid #D94F4F",
-                          border: "0.5px solid rgba(217, 79, 79, 0.15)",
-                          borderLeftWidth: "2px",
-                          borderLeftColor: "#D94F4F",
-                        }}
-                      >
-                        <AlertTriangle className="w-4 h-4 text-[#D94F4F] shrink-0 mt-0.5" />
-                        <div>
-                          <span className="kicker text-[9px] text-[#D94F4F] block mb-1">WARNING</span>
-                          <p className="font-body text-sm text-[#c9a9a9] leading-relaxed">
-                            {step.warning}
-                          </p>
-                        </div>
-                      </div>
-                    )}
-
-                    {step.tip && (
-                      <div
-                        className="flex gap-3 p-4"
-                        style={{
-                          background: "rgba(0, 105, 76, 0.06)",
-                          borderLeft: "2px solid var(--forest)",
-                          border: "0.5px solid rgba(0, 105, 76, 0.15)",
-                          borderLeftWidth: "2px",
-                          borderLeftColor: "var(--forest)",
-                        }}
-                      >
-                        <Lightbulb className="w-4 h-4 text-teal shrink-0 mt-0.5" />
-                        <div>
-                          <span className="kicker text-[9px] text-teal block mb-1">TIP</span>
-                          <p className="font-body text-sm text-[#9C9A92] leading-relaxed">
-                            {step.tip}
-                          </p>
-                        </div>
-                      </div>
-                    )}
-
-                    {step.optional && (
-                      <div
-                        className="flex gap-3 p-4"
-                        style={{
-                          background: "rgba(239, 159, 39, 0.05)",
-                          borderLeft: "2px solid #EF9F27",
-                          border: "0.5px solid rgba(239, 159, 39, 0.12)",
-                          borderLeftWidth: "2px",
-                          borderLeftColor: "#EF9F27",
-                        }}
-                      >
-                        <Sparkles className="w-4 h-4 text-[#EF9F27] shrink-0 mt-0.5" />
-                        <div>
-                          <span className="kicker text-[9px] text-[#EF9F27] block mb-1">OPTIONAL UPGRADE</span>
-                          <p className="font-body text-sm text-[#b5a080] leading-relaxed">
-                            {step.optional}
-                          </p>
-                        </div>
-                      </div>
-                    )}
                   </div>
-                </div>
-              </motion.div>
-            ))}
+                </motion.li>
+              ))}
+            </ol>
 
-            {/* Curator's note */}
             {recipe.curatorNote && (
-              <motion.div variants={itemVariants} className="mt-16 pt-16 border-t-[0.5px] border-white/10">
-                <span className="kicker text-[10px] text-teal block mb-6">
-                  CURATOR&apos;S NOTE
-                </span>
-                <div
-                  className="bg-[#1a1a19] p-10"
-                  style={{
-                    border: "0.5px solid rgba(255,255,255,0.12)",
-                    borderLeft: `2px solid ${ACCENT_HEX}`,
-                  }}
-                >
-                  <p className="font-headline italic text-2xl text-[#F2F0EA] leading-snug">
-                    &ldquo;{recipe.curatorNote}&rdquo;
-                  </p>
-                </div>
-              </motion.div>
+              <motion.figure
+                variants={itemVariants}
+                className="card mt-14 border-l-[3px] border-l-terracotta p-8"
+              >
+                <figcaption className="kicker mb-4 flex items-center gap-2 text-[10px] text-terracotta">
+                  <Flame aria-hidden="true" className="h-3.5 w-3.5" />
+                  Curator&apos;s note
+                </figcaption>
+                <blockquote className="font-headline text-2xl leading-snug text-ink">
+                  {recipe.curatorNote}
+                </blockquote>
+              </motion.figure>
             )}
           </div>
-
         </div>
       </motion.div>
     </>

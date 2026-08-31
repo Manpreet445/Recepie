@@ -1,22 +1,21 @@
 "use client";
 
-import { useState } from "react";
-import { motion } from "framer-motion";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { ChevronRight } from "lucide-react";
 import Kicker from "@/components/shared/Kicker";
 import SectionDivider from "@/components/shared/SectionDivider";
 import { LoadingState, ErrorState } from "@/components/shared/StateComponents";
 import { computeNutritionTargets } from "@/lib/nutrition/tdee";
 import { DossierInput } from "@/types/profile";
-import { ChevronRight } from "lucide-react";
 import { savePlan } from "@/lib/plans";
 
 const activityLevels = [
   { value: "sedentary", label: "Sedentary", desc: "Little or no exercise" },
   { value: "lightly_active", label: "Light", desc: "1–3 days/week" },
   { value: "moderately_active", label: "Moderate", desc: "3–5 days/week" },
-  { value: "very_active", label: "Very Active", desc: "6–7 days/week" },
-  { value: "extra_active", label: "Extra Active", desc: "2× per day" },
+  { value: "very_active", label: "Very active", desc: "6–7 days/week" },
+  { value: "extra_active", label: "Extra active", desc: "2× per day" },
 ];
 
 const goals = [
@@ -27,18 +26,134 @@ const goals = [
 
 const macroOptions = [
   { value: "balanced", label: "Balanced" },
-  { value: "high_protein", label: "High Protein" },
-  { value: "low_carb", label: "Low Carb" },
+  { value: "high_protein", label: "High protein" },
+  { value: "low_carb", label: "Low carb" },
 ];
 
-const dietaryOptions = ["Vegetarian", "Vegan", "Pescatarian", "Keto", "Paleo", "Gluten-Free", "Dairy-Free"];
-const cuisineOptions = ["Italian", "Japanese", "Mexican", "Indian", "Mediterranean", "Thai", "Korean", "American", "French"];
+const dietaryOptions = [
+  "Vegetarian",
+  "Vegan",
+  "Pescatarian",
+  "Keto",
+  "Paleo",
+  "Gluten-Free",
+  "Dairy-Free",
+];
+
+const cuisineOptions = [
+  "Italian",
+  "Japanese",
+  "Mexican",
+  "Indian",
+  "Mediterranean",
+  "Thai",
+  "Korean",
+  "American",
+  "French",
+];
 
 const cadenceOptions = [
-  { value: "variety", label: "MAXIMUM VARIETY", desc: "No repeats" },
-  { value: "4_3_split", label: "4/3 SPLIT", desc: "Batch cook twice a week" },
-  { value: "uniformity", label: "UNIFORMITY", desc: "Eat the same daily" },
+  { value: "variety", label: "Maximum variety", desc: "No repeats" },
+  { value: "4_3_split", label: "4/3 split", desc: "Batch cook twice a week" },
+  { value: "uniformity", label: "Uniformity", desc: "Eat the same daily" },
 ];
+
+/* ── Field primitives ────────────────────────────────────────────────────── */
+
+const inputClass =
+  "min-h-11 w-full rounded-sm border border-line-strong bg-surface px-3.5 text-sm text-ink transition-colors placeholder:text-ink-faint focus:border-terracotta focus:outline-none";
+
+function SectionHeading({ children, hint }: { children: React.ReactNode; hint?: string }) {
+  return (
+    <>
+      <legend className="kicker text-[10px] text-terracotta">{children}</legend>
+      {hint && <p className="mb-4 mt-1.5 text-xs text-ink-faint">{hint}</p>}
+    </>
+  );
+}
+
+/**
+ * Radio group built on real inputs — the visual control is the label, so arrow
+ * keys and screen-reader semantics come for free rather than being simulated.
+ */
+function RadioCards({
+  name,
+  options,
+  value,
+  onChange,
+  columns,
+}: {
+  name: string;
+  options: { value: string; label: string; desc?: string }[];
+  value: string;
+  onChange: (v: string) => void;
+  columns: string;
+}) {
+  return (
+    <div className={`grid gap-3 ${columns}`}>
+      {options.map((opt) => {
+        const id = `${name}-${opt.value}`;
+        const selected = value === opt.value;
+        return (
+          <div key={opt.value}>
+            <input
+              type="radio"
+              id={id}
+              name={name}
+              value={opt.value}
+              checked={selected}
+              onChange={() => onChange(opt.value)}
+              className="peer sr-only"
+            />
+            <label
+              htmlFor={id}
+              className={`flex min-h-16 cursor-pointer flex-col justify-center rounded-sm border px-4 py-3 transition-colors peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-terracotta ${
+                selected
+                  ? "border-terracotta bg-terracotta-wash"
+                  : "border-line bg-surface hover:border-line-strong"
+              }`}
+            >
+              <span
+                className={`text-sm font-medium ${selected ? "text-terracotta" : "text-ink"}`}
+              >
+                {opt.label}
+              </span>
+              {opt.desc && <span className="mt-0.5 text-xs text-ink-faint">{opt.desc}</span>}
+            </label>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/** Multi-select chip. Toggles are buttons with aria-pressed, not radios. */
+function ToggleChip({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={`inline-flex min-h-10 cursor-pointer items-center rounded-pill border px-4 text-sm transition-colors ${
+        active
+          ? "border-herb-edge bg-herb-wash text-herb-ink"
+          : "border-line-strong bg-surface text-ink-soft hover:border-terracotta-edge hover:text-ink"
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
+
+/* ── Page ────────────────────────────────────────────────────────────────── */
 
 export default function DossierPage() {
   const router = useRouter();
@@ -56,8 +171,7 @@ export default function DossierPage() {
     dietary: [] as string[],
     allergies: "",
     cuisines: [] as string[],
-    budgetMin: "",
-    budgetMax: "",
+
     cadence: "4_3_split",
     durationDays: 3,
     mealsPerDay: 3,
@@ -66,14 +180,13 @@ export default function DossierPage() {
   const toggleArray = (arr: string[], value: string) =>
     arr.includes(value) ? arr.filter((v) => v !== value) : [...arr, value];
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsGenerating(true);
-    setError(null);
-
-    try {
-      // 1. Calculate targets locally so we can tell the AI exactly what we need
-      const targets = computeNutritionTargets({
+  /**
+   * Targets recompute as the form changes so the numbers are visible before
+   * committing to a generation run, rather than only appearing afterwards.
+   */
+  const targets = useMemo(
+    () =>
+      computeNutritionTargets({
         age: form.age,
         sex: form.sex,
         heightCm: form.heightCm,
@@ -81,14 +194,25 @@ export default function DossierPage() {
         activityLevel: form.activityLevel as DossierInput["activityLevel"],
         goal: form.goal as DossierInput["goal"],
         macroFocus: form.macroFocus as DossierInput["macroFocus"],
-      });
+      }),
+    [
+      form.age,
+      form.sex,
+      form.heightCm,
+      form.weightKg,
+      form.activityLevel,
+      form.goal,
+      form.macroFocus,
+    ]
+  );
 
-      // 2. Call our bridge API — parse budget strings to numbers for the backend
-      const payload = {
-        ...form,
-        budgetMin: parseFloat(form.budgetMin) || 0,
-        budgetMax: parseFloat(form.budgetMax) || 0,
-      };
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsGenerating(true);
+    setError(null);
+
+    try {
+      const payload = { ...form };
       const response = await fetch("/api/generate-plan", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -101,7 +225,7 @@ export default function DossierPage() {
 
       const plan = await response.json();
 
-      // 3. Keep in sessionStorage so protocol page can read it immediately
+      // Keep in sessionStorage so protocol page can read it immediately
       sessionStorage.setItem("latest_plan", JSON.stringify(plan));
 
       // Persist to Supabase in the background — don't block navigation
@@ -118,10 +242,10 @@ export default function DossierPage() {
 
   if (isGenerating) {
     return (
-      <div className="max-w-2xl mx-auto py-20">
-        <LoadingState 
-          variant="spinner" 
-          message="Calculating macros and drafting your protocol..." 
+      <div className="mx-auto max-w-2xl py-20">
+        <LoadingState
+          variant="spinner"
+          message="Calculating macros and drafting your protocol…"
         />
       </div>
     );
@@ -129,323 +253,291 @@ export default function DossierPage() {
 
   if (error) {
     return (
-      <div className="max-w-2xl mx-auto py-20">
-        <ErrorState 
-          message={error} 
-          onRetry={() => setError(null)} 
-        />
+      <div className="mx-auto max-w-2xl py-20">
+        <ErrorState message={error} onRetry={() => setError(null)} />
       </div>
     );
   }
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <Kicker numeral="II" className="mb-4">
-        THE DOSSIER
+    <div className="mx-auto max-w-2xl">
+      <Kicker numeral="II" className="mb-5">
+        The dossier
       </Kicker>
-      <h1 className="font-serif text-3xl md:text-4xl text-text-primary mb-2">
-        Your nutritional profile.
-      </h1>
-      <p className="text-sm text-text-secondary mb-8 max-w-lg">
-        Fill in your details below. We&apos;ll calculate your targets using the Mifflin-St Jeor
-        equation, then generate a calibrated meal plan.
+      <h1 className="display mb-4 text-4xl text-ink md:text-5xl">Your nutritional profile.</h1>
+      <p className="mb-10 max-w-lg text-lg leading-relaxed text-ink-soft">
+        We calculate your targets with the Mifflin&#8209;St Jeor equation, then build a plan
+        against them. Everything below has a sensible default — adjust only what matters.
       </p>
 
-      <form onSubmit={handleSubmit} className="space-y-8">
-        {/* Biometrics */}
-        <section>
-          <h2 className="font-mono text-[10px] uppercase tracking-[0.2em] text-teal mb-4">
-            Biometrics
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <form onSubmit={handleSubmit} className="space-y-10">
+        {/* ── Biometrics ────────────────────────────────────────────────── */}
+        <fieldset>
+          <SectionHeading>Biometrics</SectionHeading>
+          <div className="mt-4 grid grid-cols-2 gap-4 md:grid-cols-4">
             <div>
-              <label className="block text-xs text-text-secondary mb-1.5">Age</label>
+              <label htmlFor="age" className="mb-1.5 block text-xs text-ink-soft">
+                Age
+              </label>
               <input
+                id="age"
                 type="number"
+                inputMode="numeric"
+                min={14}
+                max={100}
                 value={form.age}
                 onChange={(e) => setForm({ ...form, age: +e.target.value })}
-                className="w-full px-3 py-2.5 bg-bg-card border border-border rounded-lg text-sm text-text-primary focus:border-teal/40 focus:outline-none transition-colors"
+                className={`numeric ${inputClass}`}
               />
             </div>
             <div>
-              <label className="block text-xs text-text-secondary mb-1.5">Sex</label>
+              <label htmlFor="sex" className="mb-1.5 block text-xs text-ink-soft">
+                Sex
+              </label>
               <select
+                id="sex"
                 value={form.sex}
                 onChange={(e) => setForm({ ...form, sex: e.target.value as "male" | "female" })}
-                className="w-full px-3 py-2.5 bg-bg-card border border-border rounded-lg text-sm text-text-primary focus:border-teal/40 focus:outline-none transition-colors"
+                className={inputClass}
               >
                 <option value="male">Male</option>
                 <option value="female">Female</option>
               </select>
             </div>
             <div>
-              <label className="block text-xs text-text-secondary mb-1.5">Height (cm)</label>
+              <label htmlFor="height" className="mb-1.5 block text-xs text-ink-soft">
+                Height (cm)
+              </label>
               <input
+                id="height"
                 type="number"
+                inputMode="numeric"
+                min={120}
+                max={230}
                 value={form.heightCm}
                 onChange={(e) => setForm({ ...form, heightCm: +e.target.value })}
-                className="w-full px-3 py-2.5 bg-bg-card border border-border rounded-lg text-sm text-text-primary focus:border-teal/40 focus:outline-none transition-colors"
+                className={`numeric ${inputClass}`}
               />
             </div>
             <div>
-              <label className="block text-xs text-text-secondary mb-1.5">Weight (kg)</label>
+              <label htmlFor="weight" className="mb-1.5 block text-xs text-ink-soft">
+                Weight (kg)
+              </label>
               <input
+                id="weight"
                 type="number"
+                inputMode="numeric"
+                min={35}
+                max={250}
                 value={form.weightKg}
                 onChange={(e) => setForm({ ...form, weightKg: +e.target.value })}
-                className="w-full px-3 py-2.5 bg-bg-card border border-border rounded-lg text-sm text-text-primary focus:border-teal/40 focus:outline-none transition-colors"
+                className={`numeric ${inputClass}`}
               />
             </div>
           </div>
-        </section>
+        </fieldset>
 
         <SectionDivider />
 
-        {/* Activity Level */}
-        <section>
-          <h2 className="font-mono text-[10px] uppercase tracking-[0.2em] text-teal mb-4">
-            Activity Level
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-            {activityLevels.map((level) => (
-              <button
-                type="button"
-                key={level.value}
-                onClick={() => setForm({ ...form, activityLevel: level.value })}
-                className={`p-3 rounded-lg border text-left transition-all cursor-pointer ${
-                  form.activityLevel === level.value
-                    ? "border-teal/40 bg-teal/5 shadow-[0_0_15px_rgba(94,234,212,0.06)]"
-                    : "border-border bg-bg-card hover:border-border-strong"
-                }`}
-              >
-                <p className="text-sm text-text-primary font-medium">{level.label}</p>
-                <p className="text-[10px] text-text-tertiary mt-0.5">{level.desc}</p>
-              </button>
-            ))}
+        {/* ── Activity ──────────────────────────────────────────────────── */}
+        <fieldset>
+          <SectionHeading>Activity level</SectionHeading>
+          <div className="mt-4">
+            <RadioCards
+              name="activity"
+              options={activityLevels}
+              value={form.activityLevel}
+              onChange={(v) => setForm({ ...form, activityLevel: v })}
+              columns="grid-cols-2 md:grid-cols-5"
+            />
+          </div>
+        </fieldset>
+
+        {/* ── Goal ──────────────────────────────────────────────────────── */}
+        <fieldset>
+          <SectionHeading>Goal</SectionHeading>
+          <div className="mt-4">
+            <RadioCards
+              name="goal"
+              options={goals}
+              value={form.goal}
+              onChange={(v) => setForm({ ...form, goal: v })}
+              columns="grid-cols-3"
+            />
+          </div>
+        </fieldset>
+
+        {/* ── Macro focus ───────────────────────────────────────────────── */}
+        <fieldset>
+          <SectionHeading>Macro focus</SectionHeading>
+          <div className="mt-4">
+            <RadioCards
+              name="macro"
+              options={macroOptions}
+              value={form.macroFocus}
+              onChange={(v) => setForm({ ...form, macroFocus: v })}
+              columns="grid-cols-3"
+            />
+          </div>
+        </fieldset>
+
+        {/* ── Live targets ──────────────────────────────────────────────── */}
+        <section
+          aria-live="polite"
+          className="card overflow-hidden border-terracotta-edge bg-terracotta-wash"
+        >
+          <div className="flex flex-wrap items-center justify-between gap-4 p-5">
+            <div>
+              <h2 className="kicker text-[10px] text-terracotta">Your daily targets</h2>
+              <p className="mt-1 text-xs text-ink-soft">
+                Updates as you adjust the fields above.
+              </p>
+            </div>
+            <dl className="flex flex-wrap gap-x-6 gap-y-2">
+              {[
+                ["Energy", `${targets.kcal}`, "kcal"],
+                ["Protein", `${targets.proteinG}`, "g"],
+                ["Carbs", `${targets.carbsG}`, "g"],
+                ["Fat", `${targets.fatG}`, "g"],
+              ].map(([label, value, unit]) => (
+                <div key={label}>
+                  <dt className="kicker text-[9px] text-ink-faint">{label}</dt>
+                  <dd className="numeric text-xl font-semibold text-ink">
+                    {value}
+                    <span className="ml-0.5 text-xs font-normal text-ink-faint">{unit}</span>
+                  </dd>
+                </div>
+              ))}
+            </dl>
           </div>
         </section>
 
         <SectionDivider />
 
-        {/* Goal */}
-        <section>
-          <h2 className="font-mono text-[10px] uppercase tracking-[0.2em] text-teal mb-4">
-            Goal
-          </h2>
-          <div className="grid grid-cols-3 gap-3">
-            {goals.map((g) => (
-              <button
-                type="button"
-                key={g.value}
-                onClick={() => setForm({ ...form, goal: g.value })}
-                className={`p-4 rounded-lg border text-center transition-all cursor-pointer ${
-                  form.goal === g.value
-                    ? "border-teal/40 bg-teal/5"
-                    : "border-border bg-bg-card hover:border-border-strong"
-                }`}
-              >
-                <p className="font-serif text-lg text-text-primary">{g.label}</p>
-                <p className="text-[10px] text-text-tertiary mt-0.5">{g.desc}</p>
-              </button>
-            ))}
-          </div>
-        </section>
-
-        {/* Macro Focus */}
-        <section>
-          <h2 className="font-mono text-[10px] uppercase tracking-[0.2em] text-teal mb-4">
-            Macro Focus
-          </h2>
-          <div className="flex flex-wrap gap-2">
-            {macroOptions.map((opt) => (
-              <button
-                type="button"
-                key={opt.value}
-                onClick={() => setForm({ ...form, macroFocus: opt.value })}
-                className={`px-4 py-2 rounded-full border font-mono text-[11px] uppercase tracking-[0.1em] transition-all cursor-pointer ${
-                  form.macroFocus === opt.value
-                    ? "border-teal/40 bg-teal/10 text-teal"
-                    : "border-border text-text-secondary hover:border-border-strong"
-                }`}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
-        </section>
-
-        <SectionDivider />
-
-        {/* Dietary Preferences */}
-        <section>
-          <h2 className="font-mono text-[10px] uppercase tracking-[0.2em] text-teal mb-4">
-            Dietary Preferences
-          </h2>
+        {/* ── Dietary ───────────────────────────────────────────────────── */}
+        <fieldset>
+          <SectionHeading hint="Select any that apply.">Dietary preferences</SectionHeading>
           <div className="flex flex-wrap gap-2">
             {dietaryOptions.map((d) => (
-              <button
-                type="button"
+              <ToggleChip
                 key={d}
+                active={form.dietary.includes(d)}
                 onClick={() => setForm({ ...form, dietary: toggleArray(form.dietary, d) })}
-                className={`px-3 py-1.5 rounded-full border text-xs transition-all cursor-pointer ${
-                  form.dietary.includes(d)
-                    ? "border-teal/40 bg-teal/10 text-teal"
-                    : "border-border text-text-secondary hover:border-border-strong"
-                }`}
               >
                 {d}
-              </button>
+              </ToggleChip>
             ))}
           </div>
-        </section>
+        </fieldset>
 
-        {/* Allergies */}
-        <section>
-          <h2 className="font-mono text-[10px] uppercase tracking-[0.2em] text-teal mb-4">
-            Allergies
-          </h2>
+        {/* ── Allergies ─────────────────────────────────────────────────── */}
+        <fieldset>
+          <SectionHeading>Allergies</SectionHeading>
+          <label htmlFor="allergies" className="mb-1.5 mt-4 block text-xs text-ink-soft">
+            Ingredients to exclude entirely
+          </label>
           <input
+            id="allergies"
             type="text"
-            placeholder="e.g., nuts, shellfish, soy..."
+            placeholder="nuts, shellfish, soy…"
             value={form.allergies}
             onChange={(e) => setForm({ ...form, allergies: e.target.value })}
-            className="w-full px-4 py-2.5 bg-bg-card border border-border rounded-lg text-sm text-text-primary placeholder:text-text-tertiary focus:border-teal/40 focus:outline-none transition-colors"
+            aria-describedby="allergies-help"
+            className={inputClass}
           />
-        </section>
+          <p id="allergies-help" className="mt-2 text-xs text-ink-faint">
+            Comma-separated. These are passed through as hard exclusions.
+          </p>
+        </fieldset>
 
-        {/* Cuisine preferences */}
-        <section>
-          <h2 className="font-mono text-[10px] uppercase tracking-[0.2em] text-teal mb-4">
-            Cuisine Preferences
-          </h2>
+        {/* ── Cuisines ──────────────────────────────────────────────────── */}
+        <fieldset>
+          <SectionHeading hint="Leave empty for no preference.">
+            Cuisine preferences
+          </SectionHeading>
           <div className="flex flex-wrap gap-2">
             {cuisineOptions.map((c) => (
-              <button
-                type="button"
+              <ToggleChip
                 key={c}
+                active={form.cuisines.includes(c)}
                 onClick={() => setForm({ ...form, cuisines: toggleArray(form.cuisines, c) })}
-                className={`px-3 py-1.5 rounded-full border text-xs transition-all cursor-pointer ${
-                  form.cuisines.includes(c)
-                    ? "border-amber/40 bg-amber/10 text-amber"
-                    : "border-border text-text-secondary hover:border-border-strong"
-                }`}
               >
                 {c}
-              </button>
+              </ToggleChip>
             ))}
           </div>
-        </section>
+        </fieldset>
+
+        {/* ── Cadence ───────────────────────────────────────────────────── */}
+        <fieldset>
+          <SectionHeading hint="How often you want to actually cook.">
+            Preparation cadence
+          </SectionHeading>
+          <RadioCards
+            name="cadence"
+            options={cadenceOptions}
+            value={form.cadence}
+            onChange={(v) => setForm({ ...form, cadence: v })}
+            columns="grid-cols-1 sm:grid-cols-3"
+          />
+        </fieldset>
 
         <SectionDivider />
 
-        {/* Weekly Allocation (Budget Range) */}
-        <section>
-          <h2 className="font-label text-[10px] uppercase tracking-[0.2em] text-text-tertiary mb-4">
-            Weekly Allocation
-          </h2>
-          <div className="flex items-baseline gap-6">
-            <div className="flex-1 border-b-[0.5px] border-white/20 pb-2 flex items-baseline gap-2 transition-colors focus-within:border-teal">
-              <span className="font-label text-sm text-text-tertiary">$</span>
-              <input
-                type="text"
-                inputMode="decimal"
-                placeholder="MIN"
-                value={form.budgetMin}
-                onChange={(e) => setForm({ ...form, budgetMin: e.target.value })}
-                className="font-body bg-transparent border-none focus:ring-0 focus:outline-none p-0 text-base text-text-primary placeholder:text-text-tertiary w-full"
-              />
-            </div>
-            <span className="font-label text-[10px] uppercase tracking-[0.15em] text-text-tertiary">to</span>
-            <div className="flex-1 border-b-[0.5px] border-white/20 pb-2 flex items-baseline gap-2 transition-colors focus-within:border-teal">
-              <span className="font-label text-sm text-text-tertiary">$</span>
-              <input
-                type="text"
-                inputMode="decimal"
-                placeholder="MAX"
-                value={form.budgetMax}
-                onChange={(e) => setForm({ ...form, budgetMax: e.target.value })}
-                className="font-body bg-transparent border-none focus:ring-0 focus:outline-none p-0 text-base text-text-primary placeholder:text-text-tertiary w-full"
-              />
-            </div>
-          </div>
-        </section>
-
-        {/* Preparation Cadence */}
-        <section>
-          <h2 className="font-label text-[10px] uppercase tracking-[0.2em] text-text-tertiary mb-1">
-            Preparation Cadence
-          </h2>
-          <p className="font-body text-[12px] text-text-secondary mb-3">
-            Determine your batch-cooking frequency.
-          </p>
-          <div className="flex flex-col gap-2">
-            {cadenceOptions.map((opt) => (
-              <motion.button
-                type="button"
-                key={opt.value}
-                onClick={() => setForm({ ...form, cadence: opt.value })}
-                whileHover={{ scale: 0.995 }}
-                whileTap={{ scale: 0.98 }}
-                className={`font-body w-full text-left p-4 border-[0.5px] rounded-none text-[13px] transition-colors flex justify-between items-center group cursor-pointer ${
-                  form.cadence === opt.value
-                    ? "bg-bg-card border-teal text-text-primary"
-                    : "bg-transparent border-white/20 text-text-secondary hover:border-white/40"
-                }`}
-              >
-                <span>{opt.label}</span>
-                <span className={`text-[11px] ${
-                  form.cadence === opt.value ? "text-teal" : "text-text-tertiary"
-                }`}>
-                  {opt.desc}
-                </span>
-              </motion.button>
-            ))}
-          </div>
-        </section>
-
-        <SectionDivider />
-
-        {/* Plan config */}
-        <section>
-          <h2 className="font-mono text-[10px] uppercase tracking-[0.2em] text-teal mb-4">
-            Plan Configuration
-          </h2>
-          <div className="grid grid-cols-2 gap-4">
+        {/* ── Plan config ───────────────────────────────────────────────── */}
+        <fieldset>
+          <SectionHeading>Plan configuration</SectionHeading>
+          <div className="mt-4 grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs text-text-secondary mb-1.5">Duration (days)</label>
+              <label htmlFor="duration" className="mb-1.5 block text-xs text-ink-soft">
+                Duration
+              </label>
               <select
+                id="duration"
                 value={form.durationDays}
                 onChange={(e) => setForm({ ...form, durationDays: +e.target.value })}
-                className="w-full px-3 py-2.5 bg-bg-card border border-border rounded-lg text-sm text-text-primary focus:border-teal/40 focus:outline-none transition-colors"
+                className={inputClass}
               >
                 {[1, 2, 3, 5, 7].map((d) => (
-                  <option key={d} value={d}>{d} {d === 1 ? "day" : "days"}</option>
+                  <option key={d} value={d}>
+                    {d} {d === 1 ? "day" : "days"}
+                  </option>
                 ))}
               </select>
             </div>
             <div>
-              <label className="block text-xs text-text-secondary mb-1.5">Meals per day</label>
+              <label htmlFor="meals" className="mb-1.5 block text-xs text-ink-soft">
+                Meals per day
+              </label>
               <select
+                id="meals"
                 value={form.mealsPerDay}
                 onChange={(e) => setForm({ ...form, mealsPerDay: +e.target.value })}
-                className="w-full px-3 py-2.5 bg-bg-card border border-border rounded-lg text-sm text-text-primary focus:border-teal/40 focus:outline-none transition-colors"
+                className={inputClass}
               >
                 {[2, 3, 4, 5].map((m) => (
-                  <option key={m} value={m}>{m} meals</option>
+                  <option key={m} value={m}>
+                    {m} meals
+                  </option>
                 ))}
               </select>
             </div>
           </div>
-        </section>
+        </fieldset>
 
-        {/* Submit */}
-        <button
-          type="submit"
-          className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-teal text-bg-page font-mono text-sm uppercase tracking-[0.1em] rounded-lg hover:bg-teal-subtle transition-colors font-medium cursor-pointer"
-        >
-          Generate Protocol
-          <ChevronRight className="w-4 h-4" />
-        </button>
+        {/* ── Submit ────────────────────────────────────────────────────── */}
+        <div className="sticky bottom-4 pt-2">
+          <button
+            type="submit"
+            className="group flex min-h-13 w-full cursor-pointer items-center justify-center gap-2 rounded-pill bg-terracotta px-6 py-3.5 text-sm font-medium text-white shadow-md transition-colors hover:bg-terracotta-deep"
+          >
+            Generate protocol
+            <ChevronRight
+              aria-hidden="true"
+              className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1"
+            />
+          </button>
+        </div>
       </form>
     </div>
   );
