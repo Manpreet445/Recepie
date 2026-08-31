@@ -23,8 +23,7 @@ const requestSchema = z.object({
     dietary: z.array(z.string()),
     allergies: z.string(),
     cuisines: z.array(z.string()),
-    budgetMin: z.number().min(0),
-    budgetMax: z.number().min(0),
+
     cadence: z.string(),
     durationDays: z.number().int().min(1).max(14),
     mealsPerDay: z.number().int().min(1).max(6),

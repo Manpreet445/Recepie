@@ -175,9 +175,7 @@ export function buildMealPlanPrompt(input: DossierInput, targets: MacroTargets) 
   };
   const cadenceLabel = cadenceMap[input.cadence] || "MAXIMUM VARIETY";
 
-  const budgetMin = input.budgetMin ?? 0;
-  const budgetMax = input.budgetMax ?? 0;
-  const hasBudget = budgetMin > 0 || budgetMax > 0;
+
 
   return `
     Act as a Michelin-star chef and clinical nutritionist who specializes in teaching home cooks.
@@ -198,14 +196,9 @@ export function buildMealPlanPrompt(input: DossierInput, targets: MacroTargets) 
     - If 'MAXIMUM VARIETY': Generate completely unique meals for every day. No recipe should repeat across any day.
     Do not change the JSON structure. Just duplicate the meal objects across the days[] array to reflect the batch-cooking repetition so the frontend UI renders correctly.
     
-    ${hasBudget ? `RULE 2 — GROCERY BUDGET MATCHING:
-    The user has a strict weekly grocery budget range of $${budgetMin} to $${budgetMax}.
-    When generating ingredients, assign a realistic estimated price range (min, max in USD) based on average North American grocery costs.
-    Every ingredient object MUST include an "estimatedPriceRange" with "min" and "max" numbers.
-    Ensure the total estimated cost of all UNIQUE ingredients combined falls within ±$10 of the user's budget range.
-    At the top level of the response, include a "marketListEstimate" object with "totalMin" and "totalMax" representing the sum of all unique ingredient price ranges.` : `RULE 2 — GROCERY BUDGET:
-    No budget constraint specified. Still include realistic "estimatedPriceRange" (min, max in USD) for every ingredient based on average North American grocery costs.
-    Include a "marketListEstimate" at the top level with "totalMin" and "totalMax" summing all unique ingredient price ranges.`}
+    RULE 2 — GROCERY BUDGET:
+    Include realistic "estimatedPriceRange" (min, max in USD) for every ingredient based on average North American grocery costs.
+    Include a "marketListEstimate" at the top level with "totalMin" and "totalMax" summing all unique ingredient price ranges.
     
     Rules for your protocol:
     1. Every recipe must be real, high-quality, and detailed.

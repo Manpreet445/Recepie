@@ -22,8 +22,7 @@ describe("POST /api/generate-plan", () => {
       dietary: [],
       allergies: "None",
       cuisines: ["Italian"],
-      budgetMin: 50,
-      budgetMax: 100,
+
       cadence: "variety",
       durationDays: 3,
       mealsPerDay: 3,

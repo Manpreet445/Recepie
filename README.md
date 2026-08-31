@@ -30,7 +30,7 @@
 - **TDEE & Macro Calculator** — Mifflin-St Jeor equation with configurable activity levels, goals (cut / maintain / bulk), and macro splits
 - **Pantry Matching** — Cross-references your inventory against recipe ingredient lists to surface what you can cook now
 - **Market List** — Auto-aggregates and consolidates ingredients across all plan days, grouped by section
-- **Budget Constraints** — Optional weekly allocation range that guides the AI to stay within your grocery budget
+
 - **Preparation Cadence** — Choose between maximum variety, 4/3 batch-cooking splits, or full uniformity
 - **Beginner-Friendly Guidance** — Every recipe step includes contextual warnings, tips, and optional upgrades
 

@@ -26,8 +26,7 @@ export interface DossierInput {
   dietary: string[];
   allergies: string;
   cuisines: string[];
-  budgetMin: number;
-  budgetMax: number;
+
   cadence: Cadence;
   durationDays: number;
   mealsPerDay: number;
