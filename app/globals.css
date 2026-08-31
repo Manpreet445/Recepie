@@ -1,157 +1,329 @@
 @import "tailwindcss";
 
-/* color tokens and design system vars */
+/* ═══════════════════════════════════════════════════════════════════════════
+   RECEPIE — warm light design system
+   Palette: parchment cream + terracotta + herb green.
+   Every colour is a semantic token; components never reach for raw hex.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
 :root {
-  /* backgrounds */
-  --bg-page: #151514;
-  --bg-card: #1a1a19;
-  --bg-deep: #1a1a19;
-  --bg-elevated: #222222;
+  /* ── Surfaces ────────────────────────────────────────────────────────── */
+  --paper: #fffbeb;          /* page — warm parchment */
+  --paper-deep: #fbf3e0;     /* sunken bands, footers */
+  --surface: #ffffff;        /* cards, sheets */
+  --surface-muted: #faf5e9;  /* wells, inactive rows */
+  --surface-hover: #fdf8ec;
 
-  /* text colors */
-  --text-primary: #e6e6e6;
-  --text-secondary: #9C9A92;
-  --text-tertiary: #73726C;
+  /* ── Ink ─────────────────────────────────────────────────────────────── */
+  --ink: #1c1917;            /* 16.1:1 on paper */
+  --ink-soft: #57534e;       /* 6.8:1  on paper */
+  --ink-faint: #78716c;      /* 4.8:1  on paper — AA at any size */
 
-  /* accents */
-  --forest: #00694c;
-  --forest-subtle: #004d37;
-  --forest-glow: rgba(0, 105, 76, 0.12);
-  --harvest: #855400;
-  --harvest-subtle: #5a3800;
-  --red: #D94F4F;
-  --green: #3DB06C;
+  /* ── Terracotta (primary) ────────────────────────────────────────────── */
+  --terracotta: #9a3412;         /* 7.2:1 on paper — safe for text */
+  --terracotta-deep: #7c2d12;
+  --terracotta-wash: rgba(154, 52, 18, 0.08);
+  --terracotta-edge: rgba(154, 52, 18, 0.22);
 
-  /* outline */
-  --outline-variant: rgba(109, 122, 115, 0.4);
+  /* ── Herb green (secondary) ──────────────────────────────────────────── */
+  --herb: #059669;               /* fills + indicators only (3.2:1) */
+  --herb-ink: #047857;           /* 4.8:1 on paper — the text-safe green */
+  --herb-wash: rgba(5, 150, 105, 0.09);
+  --herb-edge: rgba(5, 150, 105, 0.24);
 
-  /* font stacks */
-  --font-serif: var(--font-fraunces), Georgia, "Times New Roman", serif;
-  --font-sans: var(--font-inter), system-ui, -apple-system, sans-serif;
-  --font-grotesk: var(--font-space-grotesk), "Space Grotesk", sans-serif;
+  /* ── Ember (macro / data accent) ─────────────────────────────────────── */
+  --ember: #ea580c;              /* fills only */
+  --ember-ink: #c2410c;          /* 5.1:1 on paper */
+  --ember-wash: rgba(234, 88, 12, 0.09);
+
+  /* ── Semantic states ─────────────────────────────────────────────────── */
+  --danger: #b91c1c;
+  --danger-wash: rgba(185, 28, 28, 0.08);
+  --success: #047857;
+  --success-wash: rgba(4, 120, 87, 0.09);
+  --warning: #a16207;
+  --warning-wash: rgba(161, 98, 7, 0.1);
+
+  /* ── Lines ───────────────────────────────────────────────────────────── */
+  --line: #efe2cc;
+  --line-strong: #ddc9a8;
+
+  /* ── Elevation — single-layer, warm-tinted, never muddy ──────────────── */
+  --shadow-sm: 0 1px 2px rgba(69, 26, 3, 0.05);
+  --shadow-md: 0 4px 16px -4px rgba(69, 26, 3, 0.09);
+  --shadow-lg: 0 14px 36px -10px rgba(69, 26, 3, 0.14);
+
+  /* ── Type stacks ─────────────────────────────────────────────────────── */
+  --font-display: var(--font-fraunces), "Iowan Old Style", Georgia, serif;
+  --font-text: var(--font-karla), system-ui, -apple-system, sans-serif;
+  --font-data: var(--font-jetbrains), ui-monospace, "SF Mono", monospace;
+
+  /* ── Motion ──────────────────────────────────────────────────────────── */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
+  --dur-fast: 150ms;
+  --dur-base: 240ms;
+  --dur-slow: 420ms;
 }
 
-/* registering with tailwind v4 */
+/* ═══ Tailwind v4 token registration ════════════════════════════════════ */
 @theme inline {
-  --color-bg-page: #151514;
-  --color-bg-card: #1a1a19;
-  --color-bg-deep: #1a1a19;
-  --color-bg-elevated: #222222;
+  --color-paper: var(--paper);
+  --color-paper-deep: var(--paper-deep);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-surface-hover: var(--surface-hover);
 
-  --color-text-primary: #e6e6e6;
-  --color-text-secondary: #9C9A92;
-  --color-text-tertiary: #73726C;
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-ink-faint: var(--ink-faint);
 
-  --color-forest: #00694c;
-  --color-forest-subtle: #004d37;
-  --color-forest-glow: rgba(0, 105, 76, 0.12);
-  --color-harvest: #855400;
-  --color-harvest-subtle: #5a3800;
-  --color-red: #D94F4F;
-  --color-green: #3DB06C;
+  --color-terracotta: var(--terracotta);
+  --color-terracotta-deep: var(--terracotta-deep);
+  --color-terracotta-wash: var(--terracotta-wash);
+  --color-terracotta-edge: var(--terracotta-edge);
 
-  --color-outline-variant: rgba(109, 122, 115, 0.4);
+  --color-herb: var(--herb);
+  --color-herb-ink: var(--herb-ink);
+  --color-herb-wash: var(--herb-wash);
+  --color-herb-edge: var(--herb-edge);
 
-  /* legacy teal aliases for existing components */
-  --color-teal: #00694c;
-  --color-teal-subtle: #004d37;
-  --color-teal-glow: rgba(0, 105, 76, 0.12);
-  --color-amber: #855400;
-  --color-amber-subtle: #5a3800;
+  --color-ember: var(--ember);
+  --color-ember-ink: var(--ember-ink);
+  --color-ember-wash: var(--ember-wash);
 
-  --color-border: rgba(109, 122, 115, 0.2);
-  --color-border-strong: rgba(109, 122, 115, 0.35);
+  --color-danger: var(--danger);
+  --color-danger-wash: var(--danger-wash);
+  --color-success: var(--success);
+  --color-success-wash: var(--success-wash);
+  --color-warning: var(--warning);
+  --color-warning-wash: var(--warning-wash);
 
-  --font-serif: var(--font-serif);
-  --font-sans: var(--font-sans);
-  --font-grotesk: var(--font-grotesk);
-  --font-mono: var(--font-grotesk);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
 
-  --tracking-kicker: 0.1em;
-  --tracking-wordmark: 0.18em;
-  --tracking-utility: 0.14em;
-  --tracking-tight: -0.02em;
+  /* ── Compatibility aliases ────────────────────────────────────────────
+     The previous dark system's utility names still resolve, remapped onto
+     the warm palette, so no page renders unstyled mid-migration.          */
+  --color-bg-page: var(--paper);
+  --color-bg-card: var(--surface);
+  --color-bg-deep: var(--paper-deep);
+  --color-bg-elevated: var(--surface-muted);
+  --color-text-primary: var(--ink);
+  --color-text-secondary: var(--ink-soft);
+  --color-text-tertiary: var(--ink-faint);
+  --color-teal: var(--herb-ink);
+  --color-teal-subtle: var(--herb);
+  --color-forest: var(--herb-ink);
+  --color-forest-subtle: var(--herb);
+  --color-amber: var(--ember-ink);
+  --color-amber-subtle: var(--ember);
+  --color-harvest: var(--ember-ink);
+  --color-red: var(--danger);
+  --color-green: var(--success);
+  --color-border: var(--line);
+  --color-border-strong: var(--line-strong);
+  --color-outline-variant: var(--line-strong);
 
-  --radius-sm: 0px;
-  --radius-md: 0px;
-  --radius-lg: 0px;
-  --radius-pill: 0px;
+  --font-display: var(--font-display);
+  --font-text: var(--font-text);
+  --font-data: var(--font-data);
+  --font-serif: var(--font-display);
+  --font-sans: var(--font-text);
+  --font-mono: var(--font-data);
+
+  --tracking-kicker: 0.14em;
+  --tracking-wordmark: 0.2em;
+  --tracking-utility: 0.12em;
+
+  --radius-xs: 6px;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  --radius-pill: 999px;
+
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+
+  --ease-out: var(--ease-out);
+  --ease-spring: var(--ease-spring);
 }
 
-/* base reset */
-* {
+/* ═══ Base ═════════════════════════════════════════════════════════════ */
+*,
+*::before,
+*::after {
   box-sizing: border-box;
-  border-radius: 0 !important;
 }
 
 html {
   scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-size-adjust: 100%;
 }
 
 body {
-  background-color: var(--bg-page);
-  color: var(--text-primary);
-  font-family: var(--font-sans);
+  background-color: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-text);
+  font-size: 16px;
   line-height: 1.6;
-  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+/* Headings carry the display face and a tighter measure by default. */
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display);
+  line-height: 1.12;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+/* Long user content, URLs and ingredient strings reflow instead of overflowing. */
+.wrap-anywhere {
+  overflow-wrap: anywhere;
+  min-width: 0;
 }
 
 ::selection {
-  background: rgba(0, 105, 76, 0.25);
-  color: var(--text-primary);
-}
-
-/* custom scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: rgba(109, 122, 115, 0.35);
+  background: var(--terracotta-wash);
+  color: var(--terracotta-deep);
 }
 
 :focus-visible {
-  outline: 1.5px solid var(--forest);
+  outline: 2px solid var(--terracotta);
   outline-offset: 2px;
+  border-radius: 4px;
 }
 
-/* typography aliases */
-.font-headline { font-family: var(--font-serif); }
-.font-body     { font-family: var(--font-sans); }
-.font-label    { font-family: var(--font-grotesk); }
+/* ═══ Scrollbar ════════════════════════════════════════════════════════ */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--paper-deep);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--line-strong);
+  border-radius: 999px;
+  border: 2px solid var(--paper-deep);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--terracotta-edge);
+}
 
-/* hairlines */
-.hairline-b { border-bottom: 0.5px solid rgba(109, 122, 115, 0.4); }
-.hairline-t { border-top: 0.5px solid rgba(109, 122, 115, 0.4); }
-.hairline-r { border-right: 0.5px solid rgba(109, 122, 115, 0.4); }
-.hairline-l { border-left: 0.5px solid rgba(109, 122, 115, 0.4); }
+/* ═══ Typographic utilities ════════════════════════════════════════════ */
+.font-headline {
+  font-family: var(--font-display);
+}
+.font-body {
+  font-family: var(--font-text);
+}
+.font-label {
+  font-family: var(--font-data);
+}
 
-/* kicker utility */
+/* Small uppercase data label — the connective tissue of the system. */
 .kicker {
-  font-family: var(--font-grotesk);
+  font-family: var(--font-data);
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.14em;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
 }
 
-/* legacy gradient utility */
-.text-gradient-forest {
-  background: linear-gradient(135deg, var(--forest), #004d37);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+/* Any figure that sits in a column or updates in place. */
+.numeric {
+  font-family: var(--font-data);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
 }
 
+/* Display heading with the soft/wonk axes pushed for warmth. */
+.display {
+  font-family: var(--font-display);
+  font-variation-settings: "SOFT" 40, "WONK" 1, "opsz" 100;
+  letter-spacing: -0.025em;
+  line-height: 1.02;
+}
+
+/* ═══ Surface primitives ═══════════════════════════════════════════════ */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  transition:
+    box-shadow var(--dur-base) var(--ease-out),
+    border-color var(--dur-base) var(--ease-out),
+    transform var(--dur-base) var(--ease-out);
+}
+
+.card-interactive:hover {
+  border-color: var(--line-strong);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+/* Legacy hairline helpers, retuned for the light palette. */
+.hairline-b {
+  border-bottom: 1px solid var(--line);
+}
+.hairline-t {
+  border-top: 1px solid var(--line);
+}
+.hairline-r {
+  border-right: 1px solid var(--line);
+}
+.hairline-l {
+  border-left: 1px solid var(--line);
+}
+
+/* ═══ Decorative ═══════════════════════════════════════════════════════ */
+/* Faint parchment tooth — keeps large cream fields from reading as flat. */
+.grain::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.4;
+  background-image: radial-gradient(circle at 1px 1px, rgba(154, 52, 18, 0.06) 1px, transparent 0);
+  background-size: 22px 22px;
+}
+
+.text-gradient-forest,
 .text-gradient-teal {
-  background: linear-gradient(135deg, var(--forest), #004d37);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--terracotta);
+  background: none;
+  -webkit-text-fill-color: currentColor;
 }
 
 .glow-forest {
-  box-shadow: 0 0 20px var(--forest-glow), 0 0 60px rgba(0, 105, 76, 0.05);
+  box-shadow: var(--shadow-md);
+}
+
+/* ═══ Motion ═══════════════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
