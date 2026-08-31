@@ -3,16 +3,13 @@ interface SectionDividerProps {
   className?: string;
 }
 
+/** Rule between sections, optionally interrupted by a small centred glyph. */
 export default function SectionDivider({ glyph, className = "" }: SectionDividerProps) {
   return (
-    <div className={`flex items-center gap-4 my-10 ${className}`}>
-      <div className="flex-1 h-px bg-border" />
-      {glyph && (
-        <span className="text-text-tertiary text-xs font-mono tracking-widest">
-          {glyph}
-        </span>
-      )}
-      <div className="flex-1 h-px bg-border" />
+    <div aria-hidden="true" className={`my-10 flex items-center gap-4 ${className}`}>
+      <div className="h-px flex-1 bg-line" />
+      {glyph && <span className="font-label text-[10px] text-line-strong">{glyph}</span>}
+      <div className="h-px flex-1 bg-line" />
     </div>
   );
 }

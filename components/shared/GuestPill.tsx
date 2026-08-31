@@ -1,9 +1,9 @@
 export default function GuestPill({ className = "" }: { className?: string }) {
   return (
     <span
-      className={`inline-block font-sans font-medium text-[11px] tracking-[0.14em] uppercase px-3 py-1 rounded-full border border-border-strong text-text-secondary ${className}`}
+      className={`kicker inline-flex items-center rounded-pill border border-line-strong bg-surface px-3 py-1.5 text-[10px] text-ink-soft ${className}`}
     >
-      GUEST
+      Guest
     </span>
   );
 }

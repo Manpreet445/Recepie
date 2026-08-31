@@ -1,4 +1,10 @@
-type BadgeVariant = "deficit" | "maintenance" | "surplus" | "info" | "success" | "warning";
+type BadgeVariant =
+  | "deficit"
+  | "maintenance"
+  | "surplus"
+  | "info"
+  | "success"
+  | "warning";
 
 interface StatusBadgeProps {
   variant?: BadgeVariant;
@@ -6,13 +12,17 @@ interface StatusBadgeProps {
   className?: string;
 }
 
-const variantClasses: Record<BadgeVariant, string> = {
-  deficit: "bg-red/10 text-red border-red/20",
-  maintenance: "bg-teal/10 text-teal border-teal/20",
-  surplus: "bg-amber/10 text-amber border-amber/20",
-  info: "bg-teal/10 text-teal border-teal/20",
-  success: "bg-green/10 text-green border-green/20",
-  warning: "bg-amber/10 text-amber border-amber/20",
+/**
+ * Status pill. Each variant pairs a wash with a text-contrast-safe ink and a
+ * leading dot, so the state never rests on hue alone.
+ */
+const variants: Record<BadgeVariant, { classes: string; dot: string }> = {
+  deficit: { classes: "bg-danger-wash text-danger", dot: "bg-danger" },
+  maintenance: { classes: "bg-herb-wash text-herb-ink", dot: "bg-herb" },
+  surplus: { classes: "bg-ember-wash text-ember-ink", dot: "bg-ember" },
+  info: { classes: "bg-terracotta-wash text-terracotta", dot: "bg-terracotta" },
+  success: { classes: "bg-success-wash text-success", dot: "bg-success" },
+  warning: { classes: "bg-warning-wash text-warning", dot: "bg-warning" },
 };
 
 export default function StatusBadge({
@@ -20,10 +30,13 @@ export default function StatusBadge({
   children,
   className = "",
 }: StatusBadgeProps) {
+  const v = variants[variant];
+
   return (
     <span
-      className={`inline-block font-mono text-[11px] uppercase tracking-[0.14em] px-2.5 py-1 rounded-full border ${variantClasses[variant]} ${className}`}
+      className={`kicker inline-flex items-center gap-2 rounded-pill px-3 py-1.5 text-[10px] ${v.classes} ${className}`}
     >
+      <span aria-hidden="true" className={`h-1.5 w-1.5 shrink-0 rounded-pill ${v.dot}`} />
       {children}
     </span>
   );

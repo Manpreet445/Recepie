@@ -1,16 +1,12 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import Link from "next/link";
+import Image from "next/image";
 import { motion, useReducedMotion } from "framer-motion";
-import { Clock, Flame, ChefHat } from "lucide-react";
+import { Clock, Flame, Users } from "lucide-react";
 import type { Recipe } from "@/types/recipe";
 import { smartRecipeImage, IMAGE_SIZES } from "@/lib/images";
-import Image from "next/image";
-import {
-  cardVariants,
-  peekPanelVariants,
-  thumbnailVariants,
-} from "@/lib/motion";
+import { cardVariants, peekPanelVariants, thumbnailVariants } from "@/lib/motion";
 
 interface RecipeCardAnimatedProps {
   recipe: Recipe;
@@ -20,7 +16,35 @@ interface RecipeCardAnimatedProps {
   missingCount?: number;
 }
 
-/** Static fallback for users who prefer reduced motion. */
+/** Shared summary line — identical in both the static and animated cards. */
+function MetaRow({ recipe }: { recipe: Recipe }) {
+  return (
+    <div className="numeric mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-ink-faint">
+      <span className="inline-flex items-center gap-1">
+        <Flame aria-hidden="true" className="h-3 w-3" />
+        {recipe.kcal} kcal
+      </span>
+      <span className="inline-flex items-center gap-1">
+        <Clock aria-hidden="true" className="h-3 w-3" />
+        {recipe.prepMinutes + recipe.cookMinutes}m
+      </span>
+      <span className="inline-flex items-center gap-1">
+        <Users aria-hidden="true" className="h-3 w-3" />
+        {recipe.servings} srv
+      </span>
+    </div>
+  );
+}
+
+function MatchPill({ matched, missing }: { matched: number; missing?: number }) {
+  return (
+    <span className="kicker mt-2 inline-flex rounded-pill bg-herb-wash px-2 py-0.5 text-[9px] text-herb-ink">
+      {matched}/{matched + (missing ?? 0)} matched
+    </span>
+  );
+}
+
+/** Static fallback served to anyone who prefers reduced motion. */
 function StaticRecipeCard({
   recipe,
   variant = "pantry",
@@ -28,60 +52,45 @@ function StaticRecipeCard({
   matchedCount,
   missingCount,
 }: RecipeCardAnimatedProps) {
-  const imgUrl = smartRecipeImage(recipe.imageQuery, IMAGE_SIZES.thumbnail);
-
   return (
-    <a
+    <Link
       href={`/recipe/${recipe.id}`}
-      className="group block bg-bg-card border border-border overflow-hidden hover:border-border-strong transition-colors"
+      className="card card-interactive group block overflow-hidden"
     >
       <div className="flex gap-4 p-4">
-        <div className={`relative overflow-hidden border border-border shrink-0 ${
-          variant === "protocol" ? "w-[100px] h-[75px]" : "w-[120px] h-[90px]"
-        }`}>
+        <div
+          className={`relative shrink-0 overflow-hidden rounded-sm bg-surface-muted ${
+            variant === "protocol" ? "h-[75px] w-[100px]" : "h-[90px] w-[120px]"
+          }`}
+        >
           <Image
-            src={imgUrl}
+            src={smartRecipeImage(recipe.imageQuery, IMAGE_SIZES.thumbnail)}
             alt={recipe.imageAlt}
             fill
             className="object-cover"
-            sizes="(max-width: 768px) 100vw, 120px"
+            sizes="(max-width: 768px) 120px, 120px"
           />
         </div>
-        <div className="flex-1 min-w-0">
-          {mealType && (
-            <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-teal">
-              {mealType}
-            </span>
-          )}
-          <h4 className="font-serif text-lg text-text-primary group-hover:text-teal transition-colors truncate">
+        <div className="min-w-0 flex-1">
+          {mealType && <span className="kicker text-[10px] text-terracotta">{mealType}</span>}
+          <h4 className="truncate font-headline text-lg text-ink transition-colors group-hover:text-terracotta">
             {recipe.title}
           </h4>
-          <div className="flex items-center gap-3 mt-1 text-[11px] text-text-tertiary">
-            <span className="flex items-center gap-1">
-              <Flame className="w-3 h-3" />
-              {recipe.kcal} kcal / srv
-            </span>
-            <span className="flex items-center gap-1">
-              <Clock className="w-3 h-3" />
-              {recipe.prepMinutes + recipe.cookMinutes}m
-            </span>
-            <span className="flex items-center gap-1">
-              <ChefHat className="w-3 h-3" />
-              {recipe.servings} srv
-            </span>
-          </div>
+          <MetaRow recipe={recipe} />
           {matchedCount !== undefined && (
-            <span className="text-[10px] font-mono text-teal mt-1 block">
-              {matchedCount}/{matchedCount + (missingCount ?? 0)} matched
-            </span>
+            <MatchPill matched={matchedCount} missing={missingCount} />
           )}
         </div>
       </div>
-    </a>
+    </Link>
   );
 }
 
-/** Animated recipe card with hover-peek panel and shared-element transitions. */
+/**
+ * Recipe card with a hover-peek nutrition panel and shared-element transitions
+ * into the detail page. The whole card is one link, so it is reachable by
+ * keyboard rather than depending on a click handler.
+ */
 export default function RecipeCardAnimated({
   recipe,
   variant = "pantry",
@@ -89,10 +98,8 @@ export default function RecipeCardAnimated({
   matchedCount,
   missingCount,
 }: RecipeCardAnimatedProps) {
-  const router = useRouter();
   const shouldReduceMotion = useReducedMotion();
 
-  // fall back to static card if user prefers reduced motion
   if (shouldReduceMotion) {
     return (
       <StaticRecipeCard
@@ -105,117 +112,87 @@ export default function RecipeCardAnimated({
     );
   }
 
-  const imgUrl = smartRecipeImage(recipe.imageQuery, IMAGE_SIZES.thumbnail);
-
   const previewIngredients = recipe.ingredients.slice(0, 4);
   const moreCount = Math.max(0, recipe.ingredients.length - 4);
-
-  const handleClick = () => {
-    router.push(`/recipe/${recipe.id}`);
-  };
 
   return (
     <motion.div
       layoutId={`recipe-card-${recipe.id}`}
-      onClick={handleClick}
       initial="rest"
       whileHover="peek"
+      whileFocus="peek"
       variants={cardVariants}
-      className="bg-bg-card border border-border overflow-hidden cursor-pointer hover:border-border-strong transition-[border-color]"
+      className="card overflow-hidden hover:border-terracotta-edge focus-within:border-terracotta-edge"
       style={{ willChange: "transform" }}
     >
-      <div className="flex gap-4 p-4">
-        {/* thumbnail — zooms slightly on hover */}
-        <div
-          className={`relative overflow-hidden border border-border shrink-0 ${
-            variant === "protocol" ? "w-[100px] h-[75px]" : "w-[120px] h-[90px]"
-          }`}
-        >
-          <motion.div
-            layoutId={`recipe-image-${recipe.id}`}
-            className="w-full h-full relative"
-            variants={thumbnailVariants}
+      <Link href={`/recipe/${recipe.id}`} className="group block">
+        <div className="flex gap-4 p-4">
+          <div
+            className={`relative shrink-0 overflow-hidden rounded-sm bg-surface-muted ${
+              variant === "protocol" ? "h-[75px] w-[100px]" : "h-[90px] w-[120px]"
+            }`}
           >
-            <Image
-              src={imgUrl}
-              alt={recipe.imageAlt}
-              fill
-              className="object-cover"
-              sizes="(max-width: 768px) 100vw, 120px"
-            />
-          </motion.div>
-        </div>
-
-        <div className="flex-1 min-w-0">
-          {mealType && (
-            <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-teal">
-              {mealType}
-            </span>
-          )}
-          <motion.h4
-            layoutId={`recipe-title-${recipe.id}`}
-            className="font-serif text-lg text-text-primary truncate"
-          >
-            {recipe.title}
-          </motion.h4>
-          <div className="flex items-center gap-3 mt-1 text-[11px] text-text-tertiary font-mono">
-            <span className="flex items-center gap-1">
-              <Flame className="w-3 h-3" />
-              {recipe.kcal} kcal / srv
-            </span>
-            <span className="flex items-center gap-1">
-              <Clock className="w-3 h-3" />
-              {recipe.prepMinutes + recipe.cookMinutes}m
-            </span>
-            <span className="flex items-center gap-1">
-              <ChefHat className="w-3 h-3" />
-              {recipe.servings} srv
-            </span>
+            <motion.div
+              layoutId={`recipe-image-${recipe.id}`}
+              className="relative h-full w-full"
+              variants={thumbnailVariants}
+            >
+              <Image
+                src={smartRecipeImage(recipe.imageQuery, IMAGE_SIZES.thumbnail)}
+                alt={recipe.imageAlt}
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 120px, 120px"
+              />
+            </motion.div>
           </div>
-          {matchedCount !== undefined && (
-            <span className="text-[10px] font-mono text-teal mt-1 block">
-              {matchedCount}/{matchedCount + (missingCount ?? 0)} matched
-            </span>
-          )}
-        </div>
-      </div>
 
-      {/* peek panel — slides in from below on hover */}
-      <motion.div
-        variants={peekPanelVariants}
-        className="overflow-hidden"
-      >
-        <div className="px-4 pb-4 pt-0">
-          <p className="font-mono text-[11px] text-text-secondary">
-            Per srv: {recipe.kcal} kcal · {recipe.proteinG}g P · {recipe.carbsG}g C · {recipe.fatG}g F
-          </p>
-
-          {recipe.subtitle && (
-            <p className="text-[13px] text-text-secondary mt-1.5 leading-snug">
-              {recipe.subtitle}
-            </p>
-          )}
-
-          <div className="h-px bg-border my-2.5" />
-
-          {/* Show ingredients with exact measurements */}
-          <div className="space-y-1">
-            {previewIngredients.map((ing) => (
-              <div key={ing.name} className="flex justify-between text-[12px]">
-                <span className="text-text-tertiary">{ing.name}</span>
-                <span className="font-mono text-[10px] text-text-secondary ml-2 shrink-0">
-                  {ing.quantity} {ing.unit}
-                </span>
-              </div>
-            ))}
-            {moreCount > 0 && (
-              <span className="font-mono text-[10px] text-text-tertiary">
-                + {moreCount} more ingredients
-              </span>
+          <div className="min-w-0 flex-1">
+            {mealType && <span className="kicker text-[10px] text-terracotta">{mealType}</span>}
+            <motion.h4
+              layoutId={`recipe-title-${recipe.id}`}
+              className="truncate font-headline text-lg text-ink transition-colors group-hover:text-terracotta"
+            >
+              {recipe.title}
+            </motion.h4>
+            <MetaRow recipe={recipe} />
+            {matchedCount !== undefined && (
+              <MatchPill matched={matchedCount} missing={missingCount} />
             )}
           </div>
         </div>
-      </motion.div>
+
+        {/* Peek panel — expands on hover or keyboard focus. */}
+        <motion.div variants={peekPanelVariants} className="overflow-hidden">
+          <div className="px-4 pb-4">
+            <div className="mb-3 h-px bg-line" />
+
+            <p className="numeric text-[11px] text-ink-soft">
+              Per serving: {recipe.kcal} kcal · {recipe.proteinG}g P · {recipe.carbsG}g C ·{" "}
+              {recipe.fatG}g F
+            </p>
+
+            {recipe.subtitle && (
+              <p className="mt-1.5 text-[13px] leading-snug text-ink-soft">{recipe.subtitle}</p>
+            )}
+
+            <ul className="mt-3 space-y-1.5">
+              {previewIngredients.map((ing) => (
+                <li key={ing.name} className="flex items-baseline justify-between gap-3 text-[12px]">
+                  <span className="wrap-anywhere text-ink-soft">{ing.name}</span>
+                  <span className="numeric shrink-0 text-[10px] text-ink-faint">
+                    {ing.quantity} {ing.unit}
+                  </span>
+                </li>
+              ))}
+            </ul>
+
+            {moreCount > 0 && (
+              <p className="kicker mt-2 text-[9px] text-ink-faint">+ {moreCount} more</p>
+            )}
+          </div>
+        </motion.div>
+      </Link>
     </motion.div>
   );
 }

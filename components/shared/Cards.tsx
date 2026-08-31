@@ -1,10 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, Clock, Flame, Beef } from "lucide-react";
+import Image from "next/image";
+import { ArrowRight, Clock, Flame, Beef, Users } from "lucide-react";
 import type { Recipe } from "@/types/recipe";
+import { smartRecipeImage, IMAGE_SIZES } from "@/lib/images";
 
-/** Stat card for displaying a single metric (macros, kcal, etc.). */
+/* ── MetaCard ───────────────────────────────────────────────────────────── */
+
 interface MetaCardProps {
   kicker: string;
   value: string | number;
@@ -13,24 +16,31 @@ interface MetaCardProps {
   className?: string;
 }
 
+/**
+ * Single-metric tile. The figure uses tabular numerals so a row of these keeps
+ * its baseline grid when values change.
+ */
 export function MetaCard({ kicker, value, detail, unit, className = "" }: MetaCardProps) {
   return (
     <div
-      className={`bg-bg-card border border-border rounded-lg p-5 hover:border-border-strong transition-colors ${className}`}
+      className={`card relative overflow-hidden p-5 ${className}`}
     >
-      <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-teal mb-3">
-        {kicker}
-      </p>
-      <p className="font-serif text-3xl text-text-primary">
+      <span
+        aria-hidden="true"
+        className="absolute inset-x-0 top-0 h-1 bg-terracotta/25"
+      />
+      <p className="kicker mb-3 text-[10px] text-terracotta">{kicker}</p>
+      <p className="numeric text-3xl font-semibold leading-none text-ink">
         {value}
-        {unit && <span className="text-lg text-text-secondary ml-1">{unit}</span>}
+        {unit && <span className="ml-1 text-base font-normal text-ink-faint">{unit}</span>}
       </p>
-      {detail && <p className="text-xs text-text-tertiary mt-1.5">{detail}</p>}
+      {detail && <p className="mt-2 text-xs text-ink-faint">{detail}</p>}
     </div>
   );
 }
 
-/** Large clickable navigation card used on the home dashboard. */
+/* ── ModeCard ───────────────────────────────────────────────────────────── */
+
 interface ModeCardProps {
   title: string;
   subtitle: string;
@@ -40,6 +50,7 @@ interface ModeCardProps {
   accent?: "teal" | "amber";
 }
 
+/** Large entry-point card for a top-level area of the app. */
 export function ModeCard({
   title,
   subtitle,
@@ -48,128 +59,154 @@ export function ModeCard({
   icon,
   accent = "teal",
 }: ModeCardProps) {
-  const accentClasses =
-    accent === "teal"
-      ? "border-teal/20 hover:border-teal/40 hover:shadow-[0_0_30px_rgba(94,234,212,0.08)]"
-      : "border-amber/20 hover:border-amber/40 hover:shadow-[0_0_30px_rgba(251,191,36,0.08)]";
+  const isHerb = accent === "teal";
 
   return (
     <Link
       href={href}
-      className={`group block bg-bg-card rounded-xl border ${accentClasses} p-7 transition-all duration-300`}
+      className="card card-interactive group block p-7 hover:border-terracotta-edge"
     >
-      <div className="flex items-start justify-between mb-5">
-        <div className={`w-11 h-11 rounded-lg flex items-center justify-center ${
-          accent === "teal" ? "bg-teal/10 text-teal" : "bg-amber/10 text-amber"
-        }`}>
+      <div className="mb-6 flex items-start justify-between">
+        <span
+          aria-hidden="true"
+          className={`flex h-12 w-12 items-center justify-center rounded-md ${
+            isHerb ? "bg-herb-wash text-herb-ink" : "bg-ember-wash text-ember-ink"
+          }`}
+        >
           {icon}
-        </div>
-        <ArrowRight className="w-4 h-4 text-text-tertiary group-hover:text-text-secondary group-hover:translate-x-1 transition-all" />
+        </span>
+        <ArrowRight className="h-4 w-4 text-ink-faint transition-transform duration-200 group-hover:translate-x-1 group-hover:text-terracotta" />
       </div>
-      <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-text-tertiary mb-1.5">
-        {subtitle}
-      </p>
-      <h3 className="font-serif text-xl text-text-primary mb-2">{title}</h3>
-      <p className="text-sm text-text-secondary leading-relaxed">{description}</p>
+      <p className="kicker mb-2 text-[10px] text-ink-faint">{subtitle}</p>
+      <h3 className="mb-2 font-headline text-xl text-ink transition-colors group-hover:text-terracotta">
+        {title}
+      </h3>
+      <p className="text-sm leading-relaxed text-ink-soft">{description}</p>
     </Link>
   );
 }
 
-/** Compact meal card without animations (used as a fallback). */
+/* ── MealCard ───────────────────────────────────────────────────────────── */
+
 interface MealCardProps {
   mealType: string;
   recipe: Recipe;
 }
 
+/** Compact, unanimated meal row — the fallback used inside dense lists. */
 export function MealCard({ mealType, recipe }: MealCardProps) {
   return (
     <Link
       href={`/recipe/${recipe.id}`}
-      className="group block bg-bg-card border border-border rounded-lg p-5 hover:border-border-strong transition-colors"
+      className="card card-interactive group flex gap-4 overflow-hidden p-4"
     >
-      <div className="flex items-center justify-between mb-3">
-        <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-text-tertiary">
-          {mealType}
-        </span>
-        <div className="flex items-center gap-3 text-[11px] text-text-tertiary">
-          <span className="flex items-center gap-1">
-            <Clock className="w-3 h-3" />
+      <div className="relative h-[76px] w-[76px] shrink-0 overflow-hidden rounded-sm bg-surface-muted">
+        <Image
+          src={smartRecipeImage(recipe.imageQuery, IMAGE_SIZES.small)}
+          alt=""
+          fill
+          className="object-cover"
+          sizes="76px"
+        />
+      </div>
+
+      <div className="min-w-0 flex-1">
+        <span className="kicker text-[10px] text-terracotta">{mealType}</span>
+        <h4 className="mt-0.5 truncate font-headline text-lg text-ink transition-colors group-hover:text-terracotta">
+          {recipe.title}
+        </h4>
+        {recipe.subtitle && (
+          <p className="mt-0.5 truncate text-xs text-ink-soft">{recipe.subtitle}</p>
+        )}
+        <div className="numeric mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-ink-faint">
+          <span className="inline-flex items-center gap-1">
+            <Clock aria-hidden="true" className="h-3 w-3" />
             {recipe.prepMinutes + recipe.cookMinutes}m
           </span>
-          <span className="flex items-center gap-1">
-            <Flame className="w-3 h-3" />
-            {recipe.kcal} / srv
+          <span className="inline-flex items-center gap-1">
+            <Flame aria-hidden="true" className="h-3 w-3" />
+            {recipe.kcal} kcal
+          </span>
+          <span>
+            P {recipe.proteinG}g · C {recipe.carbsG}g · F {recipe.fatG}g
           </span>
         </div>
-      </div>
-      <h4 className="font-serif text-lg text-text-primary group-hover:text-teal transition-colors">
-        {recipe.title}
-      </h4>
-      {recipe.subtitle && (
-        <p className="text-xs text-text-secondary mt-1">{recipe.subtitle}</p>
-      )}
-      <div className="flex items-center gap-4 mt-3 text-[11px] text-text-tertiary font-mono">
-        <span>P {recipe.proteinG}g</span>
-        <span>C {recipe.carbsG}g</span>
-        <span>F {recipe.fatG}g</span>
       </div>
     </Link>
   );
 }
 
-/** Basic recipe card without hover animations (archive and list views). */
+/* ── RecipeCard ─────────────────────────────────────────────────────────── */
+
 interface RecipeCardProps {
   recipe: Recipe;
   matchedCount?: number;
   missingCount?: number;
 }
 
+/**
+ * Photo-led recipe card for grids. A food product should show food, so the
+ * image carries the top of the card rather than an abstract gradient.
+ */
 export function RecipeCard({ recipe, matchedCount, missingCount }: RecipeCardProps) {
+  const total = matchedCount !== undefined ? matchedCount + (missingCount ?? 0) : 0;
+
   return (
     <Link
       href={`/recipe/${recipe.id}`}
-      className="group block bg-bg-card border border-border rounded-xl overflow-hidden hover:border-border-strong transition-all duration-300 hover:shadow-lg hover:shadow-black/20"
+      className="card card-interactive group block overflow-hidden"
     >
-      {/* Gradient header area */}
-      <div className="h-32 bg-gradient-to-br from-bg-elevated to-bg-card flex items-end p-5">
-        <div className="flex items-center gap-2">
-          {recipe.tags.slice(0, 3).map((tag) => (
-            <span
-              key={tag}
-              className="px-2 py-0.5 bg-bg-page/60 backdrop-blur rounded text-[10px] font-mono uppercase tracking-wider text-text-secondary"
-            >
-              {tag}
-            </span>
-          ))}
-        </div>
+      <div className="relative aspect-[16/10] w-full overflow-hidden bg-surface-muted">
+        <Image
+          src={smartRecipeImage(recipe.imageQuery, IMAGE_SIZES.thumbnail)}
+          alt={recipe.imageAlt}
+          fill
+          className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+          sizes="(max-width: 768px) 100vw, 33vw"
+        />
+        {recipe.tags.length > 0 && (
+          <div className="absolute inset-x-0 bottom-0 flex flex-wrap gap-1.5 p-3">
+            {recipe.tags.slice(0, 3).map((tag) => (
+              <span
+                key={tag}
+                className="kicker rounded-pill bg-paper/90 px-2.5 py-1 text-[9px] text-ink-soft backdrop-blur-sm"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
+
       <div className="p-5">
-        <h4 className="font-serif text-lg text-text-primary group-hover:text-teal transition-colors mb-1">
+        <h4 className="mb-1 font-headline text-lg text-ink transition-colors group-hover:text-terracotta">
           {recipe.title}
         </h4>
         {recipe.subtitle && (
-          <p className="text-xs text-text-secondary mb-3">{recipe.subtitle}</p>
+          <p className="mb-3 line-clamp-2 text-xs text-ink-soft">{recipe.subtitle}</p>
         )}
 
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3 text-[11px] text-text-tertiary">
-            <span className="flex items-center gap-1">
-              <Clock className="w-3 h-3" />
-              {recipe.prepMinutes + recipe.cookMinutes}m
-            </span>
-            <span className="flex items-center gap-1">
-              <Flame className="w-3 h-3" />
-              {recipe.kcal} kcal / srv
-            </span>
-            <span className="flex items-center gap-1">
-              <Beef className="w-3 h-3" />
-              {recipe.proteinG}g
-            </span>
-          </div>
+        <div className="numeric flex flex-wrap items-center gap-x-3 gap-y-1.5 border-t border-line pt-3 text-[11px] text-ink-faint">
+          <span className="inline-flex items-center gap-1">
+            <Clock aria-hidden="true" className="h-3 w-3" />
+            {recipe.prepMinutes + recipe.cookMinutes}m
+          </span>
+          <span className="inline-flex items-center gap-1">
+            <Flame aria-hidden="true" className="h-3 w-3" />
+            {recipe.kcal} kcal
+          </span>
+          <span className="inline-flex items-center gap-1">
+            <Beef aria-hidden="true" className="h-3 w-3" />
+            {recipe.proteinG}g
+          </span>
+          <span className="inline-flex items-center gap-1">
+            <Users aria-hidden="true" className="h-3 w-3" />
+            {recipe.servings}
+          </span>
 
           {matchedCount !== undefined && (
-            <span className="text-[10px] font-mono text-teal">
-              {matchedCount}/{matchedCount + (missingCount ?? 0)} matched
+            <span className="kicker ml-auto rounded-pill bg-herb-wash px-2 py-0.5 text-[9px] text-herb-ink">
+              {matchedCount}/{total} matched
             </span>
           )}
         </div>
