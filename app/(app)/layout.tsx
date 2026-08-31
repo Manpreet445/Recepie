@@ -5,7 +5,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
       <AppNav />
-      <main className="flex-1 max-w-7xl w-full mx-auto px-6 md:px-8 py-8">
+      <main id="main" className="mx-auto w-full max-w-7xl flex-1 px-4 py-10 md:px-8 md:py-14">
         {children}
       </main>
       <AppFooter />

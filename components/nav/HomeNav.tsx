@@ -1,30 +1,52 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import Wordmark from "@/components/shared/Wordmark";
-import GuestPill from "@/components/shared/GuestPill";
-import { User } from "lucide-react";
 
+/**
+ * Marketing nav. Transparent over the hero, then settles onto a parchment bar
+ * once the page scrolls so the wordmark keeps its contrast.
+ */
 export default function HomeNav() {
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 16);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 h-[72px] flex items-center justify-between px-8 bg-transparent">
-      {/* Left: Wordmark */}
-      <Link href="/">
-        <Wordmark size="sm" />
-      </Link>
+    <header
+      className={`fixed inset-x-0 top-0 z-50 transition-colors duration-300 ${
+        scrolled ? "border-b border-line bg-paper/85 backdrop-blur-xl" : "border-b border-transparent"
+      }`}
+    >
+      <nav
+        aria-label="Primary"
+        className="mx-auto flex h-[68px] max-w-7xl items-center justify-between gap-4 px-4 md:px-8"
+      >
+        <Link href="/" className="shrink-0 rounded-sm">
+          <Wordmark size="sm" />
+        </Link>
 
-      {/* Center: Issue marker */}
-      <span className="hidden md:block kicker text-[10px] text-text-tertiary">
-        Issue Nº 001
-      </span>
-
-      {/* Right: Actions */}
-      <div className="flex items-center gap-3">
-        <button className="w-8 h-8 bg-bg-card/50 backdrop-blur border-[0.5px] border-[#6d7a73]/40 flex items-center justify-center hover:border-[#6d7a73]/70 transition-colors">
-          <User className="w-4 h-4 text-text-secondary" />
-        </button>
-        <GuestPill />
-      </div>
-    </nav>
+        <div className="flex items-center gap-2 sm:gap-3">
+          <Link
+            href="/pantry"
+            className="kicker hidden min-h-11 items-center rounded-pill px-4 text-[11px] text-ink-soft transition-colors hover:bg-surface-muted hover:text-ink sm:inline-flex"
+          >
+            Pantry
+          </Link>
+          <Link
+            href="/meal-prep/dossier"
+            className="kicker inline-flex min-h-11 items-center rounded-pill bg-terracotta px-5 text-[11px] text-white transition-colors hover:bg-terracotta-deep"
+          >
+            Plan a week
+          </Link>
+        </div>
+      </nav>
+    </header>
   );
 }

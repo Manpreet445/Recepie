@@ -1,39 +1,42 @@
 import Wordmark from "@/components/shared/Wordmark";
-import SectionDivider from "@/components/shared/SectionDivider";
 
 export default function MarketingFooter() {
   return (
-    <footer className="mt-auto bg-bg-deep">
-      <SectionDivider glyph="◆" className="my-0 px-8" />
-
-      <div className="max-w-5xl mx-auto px-8 py-16 text-center">
-        <p className="kicker text-[10px] text-forest mb-4">
-          Coming soon
-        </p>
-        <h3 className="font-headline text-2xl md:text-3xl text-text-primary mb-3">
-          Join the kitchen.
-        </h3>
-        <p className="font-body text-sm text-text-secondary max-w-md mx-auto mb-8">
-          Sign up for early access when we open reservations. We&apos;ll keep the kettle on.
+    <footer className="mt-auto border-t border-line bg-paper-deep">
+      <div className="mx-auto max-w-3xl px-6 py-20 text-center md:px-8">
+        <p className="kicker mb-4 text-[10px] text-terracotta">Coming soon</p>
+        <h2 className="display mb-3 text-3xl text-ink md:text-4xl">Join the kitchen.</h2>
+        <p className="mx-auto mb-8 max-w-md text-sm leading-relaxed text-ink-soft">
+          We will send one note when accounts open — saved plans, your own recipe box, no
+          weekly newsletter.
         </p>
 
-        <div className="flex items-center gap-3 justify-center max-w-sm mx-auto">
-          <input
-            type="email"
-            placeholder="your@email.com"
-            className="flex-1 px-4 py-2.5 bg-bg-card border-[0.5px] border-[#6d7a73]/40 text-sm text-text-primary placeholder:text-text-tertiary focus:border-forest/40 focus:outline-none transition-colors"
-          />
-          <button className="px-5 py-2.5 bg-forest text-bg-page kicker text-xs hover:bg-forest-subtle transition-colors font-medium">
+        <form className="mx-auto flex max-w-md flex-col gap-3 sm:flex-row">
+          <div className="flex-1 text-left">
+            <label htmlFor="notify-email" className="kicker mb-1.5 block text-[10px] text-ink-faint">
+              Email address
+            </label>
+            <input
+              id="notify-email"
+              type="email"
+              name="email"
+              autoComplete="email"
+              placeholder="you@example.com"
+              className="min-h-11 w-full rounded-sm border border-line-strong bg-surface px-4 text-sm text-ink transition-colors placeholder:text-ink-faint focus:border-terracotta focus:outline-none"
+            />
+          </div>
+          <button
+            type="submit"
+            className="kicker mt-auto inline-flex min-h-11 cursor-pointer items-center justify-center rounded-sm bg-terracotta px-6 text-[11px] text-white transition-colors hover:bg-terracotta-deep"
+          >
             Notify me
           </button>
-        </div>
+        </form>
 
-        <SectionDivider className="max-w-xs mx-auto" />
-
-        <div className="flex flex-col items-center gap-4">
+        <div className="mt-16 flex flex-col items-center gap-4 border-t border-line pt-10">
           <Wordmark size="sm" />
-          <p className="text-[10px] text-text-tertiary">
-            © {new Date().getFullYear()} RECEPIE · Issue Nº 001 · Guest mode
+          <p className="numeric text-[11px] text-ink-faint">
+            © {new Date().getFullYear()} Recepie · Guest mode · Nothing is stored
           </p>
         </div>
       </div>

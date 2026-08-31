@@ -8,9 +8,9 @@ import GuestPill from "@/components/shared/GuestPill";
 import { User, ChefHat } from "lucide-react";
 
 const tabs = [
-  { label: "PANTRY", href: "/pantry" },
-  { label: "MEAL PREP", href: "/meal-prep/dossier" },
-  { label: "JOURNAL", href: "/journal" },
+  { label: "Pantry", href: "/pantry", match: "/pantry" },
+  { label: "Meal Prep", href: "/meal-prep/dossier", match: "/meal-prep" },
+  { label: "Journal", href: "/journal", match: "/journal" },
 ];
 
 export default function AppNav() {
@@ -31,7 +31,9 @@ export default function AppNav() {
           );
           setRecipeCount(total);
         }
-      } catch { /* ignore parse errors */ }
+      } catch {
+        /* ignore parse errors */
+      }
     }
     countRecipes();
     // Re-check when navigating between pages
@@ -40,45 +42,79 @@ export default function AppNav() {
   }, [pathname]);
 
   return (
-    <nav className="sticky top-0 z-50 h-[72px] flex items-center justify-between px-8 bg-bg-page/80 backdrop-blur-xl hairline-b">
-      {/* Left: Wordmark */}
-      <Link href="/" className="shrink-0">
-        <Wordmark size="sm" />
-      </Link>
+    <header className="sticky top-0 z-50 border-b border-line bg-paper/85 backdrop-blur-xl">
+      <nav
+        aria-label="Primary"
+        className="mx-auto flex h-[68px] max-w-7xl items-center justify-between gap-4 px-4 md:px-8"
+      >
+        <Link href="/" className="shrink-0 rounded-sm">
+          <Wordmark size="sm" />
+        </Link>
 
-      {/* Center: Tabs */}
-      <div className="hidden md:flex items-center gap-1">
-        {tabs.map((tab) => {
-          const isActive =
-            pathname === tab.href || pathname.startsWith(tab.href.split("/")[1] ? `/${tab.href.split("/")[1]}` : tab.href);
+        {/* Desktop tabs */}
+        <ul className="hidden items-center gap-1 md:flex">
+          {tabs.map((tab) => {
+            const isActive = pathname === tab.match || pathname.startsWith(`${tab.match}/`);
+            return (
+              <li key={tab.href}>
+                <Link
+                  href={tab.href}
+                  aria-current={isActive ? "page" : undefined}
+                  className={`kicker relative flex min-h-11 items-center rounded-pill px-4 text-[11px] transition-colors ${
+                    isActive
+                      ? "bg-terracotta-wash text-terracotta"
+                      : "text-ink-soft hover:bg-surface-muted hover:text-ink"
+                  }`}
+                >
+                  {tab.label}
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
 
-          return (
-            <Link
-              key={tab.href}
-              href={tab.href}
-              className={`px-4 py-2 font-mono text-[11px] uppercase tracking-[0.14em] rounded-md transition-colors ${
-                isActive
-                  ? "text-teal bg-teal/8"
-                  : "text-text-secondary hover:text-text-primary hover:bg-bg-elevated/50"
-              }`}
-            >
-              {tab.label}
-            </Link>
-          );
-        })}
-      </div>
-
-      {/* Right: Actions */}
-      <div className="flex items-center gap-3">
-        <div className="hidden sm:flex items-center gap-1.5 font-mono text-[11px] text-text-tertiary tracking-[0.1em]">
-          <ChefHat className="w-3.5 h-3.5" />
-          <span>{recipeCount} {recipeCount === 1 ? "recipe" : "recipes"}</span>
+        <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+          {recipeCount > 0 && (
+            <span className="numeric hidden items-center gap-1.5 rounded-pill bg-herb-wash px-3 py-1.5 text-[11px] text-herb-ink sm:inline-flex">
+              <ChefHat aria-hidden="true" className="h-3.5 w-3.5" />
+              {recipeCount} {recipeCount === 1 ? "recipe" : "recipes"}
+            </span>
+          )}
+          <GuestPill className="hidden sm:inline-flex" />
+          <button
+            type="button"
+            aria-label="Account"
+            className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-pill border border-line bg-surface text-ink-soft transition-colors hover:border-line-strong hover:text-ink"
+          >
+            <User aria-hidden="true" className="h-4 w-4" />
+          </button>
         </div>
-        <button className="w-8 h-8 rounded-full bg-bg-card border border-border flex items-center justify-center hover:border-border-strong transition-colors">
-          <User className="w-4 h-4 text-text-secondary" />
-        </button>
-        <GuestPill />
-      </div>
-    </nav>
+      </nav>
+
+      {/* Mobile tabs — kept visible rather than hidden behind a menu, so the
+          primary sections stay reachable on small screens. */}
+      <nav aria-label="Sections" className="border-t border-line md:hidden">
+        <ul className="mx-auto flex max-w-7xl">
+          {tabs.map((tab) => {
+            const isActive = pathname === tab.match || pathname.startsWith(`${tab.match}/`);
+            return (
+              <li key={tab.href} className="flex-1">
+                <Link
+                  href={tab.href}
+                  aria-current={isActive ? "page" : undefined}
+                  className={`kicker flex min-h-12 items-center justify-center border-b-2 px-2 text-[10px] transition-colors ${
+                    isActive
+                      ? "border-terracotta text-terracotta"
+                      : "border-transparent text-ink-faint"
+                  }`}
+                >
+                  {tab.label}
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
+    </header>
   );
 }
