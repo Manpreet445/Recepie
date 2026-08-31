@@ -44,6 +44,17 @@
   --warning: #a16207;
   --warning-wash: rgba(161, 98, 7, 0.1);
 
+  /* ── Roast (inverse surface) ─────────────────────────────────────────────
+     A deep warm brown for full-bleed feature bands. Pulled from the same
+     family as terracotta so an inverted section reads as part of the system
+     rather than a foreign dark slab. */
+  --roast: #2a1a12;
+  --roast-deep: #1b100a;
+  --roast-raised: #3a271c;
+  --on-roast: #fdf6e8;        /* 13.4:1 on roast */
+  --on-roast-soft: #d9c5b0;   /* 7.6:1  on roast */
+  --sand: #e0b783;            /* 8.1:1  on roast — the accent on dark */
+
   /* ── Lines ───────────────────────────────────────────────────────────── */
   --line: #efe2cc;
   --line-strong: #ddc9a8;
@@ -98,6 +109,13 @@
   --color-success-wash: var(--success-wash);
   --color-warning: var(--warning);
   --color-warning-wash: var(--warning-wash);
+
+  --color-roast: var(--roast);
+  --color-roast-deep: var(--roast-deep);
+  --color-roast-raised: var(--roast-raised);
+  --color-on-roast: var(--on-roast);
+  --color-on-roast-soft: var(--on-roast-soft);
+  --color-sand: var(--sand);
 
   --color-line: var(--line);
   --color-line-strong: var(--line-strong);

@@ -1,10 +1,14 @@
 "use client";
 
+import { useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion, useReducedMotion } from "framer-motion";
 import HomeNav from "@/components/nav/HomeNav";
 import MarketingFooter from "@/components/footer/MarketingFooter";
+import { CoverFlowCarousel, type CarouselItem } from "@/components/ui/3-d-coverflow-carousel";
+import { mockRecipes } from "@/lib/mocks/data";
+import { smartRecipeImage } from "@/lib/images";
 import {
   ArrowRight,
   Carrot,
@@ -12,6 +16,9 @@ import {
   ListChecks,
   Sparkles,
 } from "lucide-react";
+
+/** Portrait crop — the coverflow cards are tall, so a landscape source crops badly. */
+const COVER_SIZE = [800, 1160] as [number, number];
 
 const SEASONAL = ["Fig", "Sage", "Pumpkin", "Quince", "Walnut", "Chestnut", "Leek"];
 
@@ -38,6 +45,22 @@ const STEPS = [
 
 export default function HomePage() {
   const reduce = useReducedMotion();
+
+  /** Real recipes from the collection, shaped for the coverflow. */
+  const featured: CarouselItem[] = useMemo(
+    () =>
+      mockRecipes.map((r) => ({
+        tag: r.tags[0] ? `#${r.tags[0].replace(/\s+/g, "")}` : undefined,
+        titleLine1: r.title,
+        titleLine2: r.cuisines[0],
+        desc: r.subtitle ?? r.curatorNote,
+        img: smartRecipeImage(r.imageQuery, COVER_SIZE),
+        imgAlt: r.imageAlt,
+        ctaText: "View recipe",
+        ctaUrl: `/recipe/${r.id}`,
+      })),
+    []
+  );
 
   /** Entrance offsets collapse to zero when reduced motion is requested. */
   const rise = (delay: number) =>
@@ -208,6 +231,13 @@ export default function HomePage() {
             ))}
           </ol>
         </section>
+
+        {/* ── Featured recipes ──────────────────────────────────────────── */}
+        <CoverFlowCarousel
+          items={featured}
+          sectionLabel="From the collection"
+          autoplayDelay={6000}
+        />
 
         {/* ── Entry points ──────────────────────────────────────────────── */}
         <section
