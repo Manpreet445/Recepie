@@ -2,308 +2,303 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import HomeNav from "@/components/nav/HomeNav";
 import MarketingFooter from "@/components/footer/MarketingFooter";
-import { ChefHat, Leaf, ArrowRight, BookOpen } from "lucide-react";
+import {
+  ArrowRight,
+  Carrot,
+  ChefHat,
+  ListChecks,
+  Sparkles,
+} from "lucide-react";
 
-const SEASONAL = ["Fig", "Sage", "Pumpkin", "Quince", "Walnut", "Chestnut"];
+const SEASONAL = ["Fig", "Sage", "Pumpkin", "Quince", "Walnut", "Chestnut", "Leek"];
 
-const SPRING = { type: "spring", stiffness: 300, damping: 30 } as const;
+/** What the hero's demo pantry holds, and what it resolves to. */
+const PANTRY_CHIPS = ["chickpeas", "harissa", "lemon", "chicken thigh", "yoghurt", "cumin"];
 
-const cardImgVariants = {
-  rest: { opacity: 0, scale: 1.05 },
-  hover: { opacity: 0.15, scale: 1 },
-};
+const STEPS = [
+  {
+    icon: Carrot,
+    title: "Tell us what you have",
+    body: "Type the six things actually sitting in your fridge. No barcode scanning, no full inventory.",
+  },
+  {
+    icon: Sparkles,
+    title: "Get matched, not guessed",
+    body: "We rank real recipes by how much of your shelf they already use, and name what is missing.",
+  },
+  {
+    icon: ListChecks,
+    title: "Shop one short list",
+    body: "Every gap across the week is consolidated into a single list, summed by ingredient.",
+  },
+];
 
 export default function HomePage() {
+  const reduce = useReducedMotion();
+
+  /** Entrance offsets collapse to zero when reduced motion is requested. */
+  const rise = (delay: number) =>
+    reduce
+      ? { initial: { opacity: 0 }, animate: { opacity: 1 }, transition: { duration: 0.3 } }
+      : {
+          initial: { opacity: 0, y: 20 },
+          animate: { opacity: 1, y: 0 },
+          transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] as const, delay },
+        };
+
   return (
     <>
       <HomeNav />
 
-      <main className="max-w-7xl mx-auto px-8 pt-32 pb-20">
+      <main id="main" className="flex-1">
+        {/* ── Hero ──────────────────────────────────────────────────────── */}
+        <section className="relative overflow-hidden">
+          <div className="grain pointer-events-none absolute inset-0" aria-hidden="true" />
 
-        {/* ── I. Hero ───────────────────────────────────────────────────── */}
-        <section className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-24 mb-32 items-start">
+          <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-4 pt-32 pb-20 md:px-8 lg:grid-cols-12 lg:gap-16 lg:pt-40 lg:pb-28">
+            <motion.div className="lg:col-span-6" {...rise(0.05)}>
+              <span className="kicker mb-6 inline-flex items-center gap-2 rounded-pill bg-herb-wash px-3 py-1.5 text-[10px] text-herb-ink">
+                <Carrot aria-hidden="true" className="h-3.5 w-3.5" />
+                Pantry-first meal planning
+              </span>
 
-          <motion.div
-            className="lg:col-span-7 flex flex-col pt-12"
-            initial={{ y: 24, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.8, ease: "easeOut", delay: 0.1 }}
-          >
-            <span className="kicker text-sm text-text-tertiary mb-8">I. THE ATELIER</span>
-            <h1 className="font-headline text-5xl md:text-[76px] leading-[0.95] tracking-tight mb-8">
-              Curate your<br />culinary space.
-            </h1>
-            <p className="font-body text-lg text-text-secondary max-w-xl leading-relaxed">
-              A digital gallery for the intentional cook. Archive, organize, and elevate
-              your daily rituals through a lens of mindful preparation.
-            </p>
-          </motion.div>
+              <h1 className="display mb-6 text-5xl text-ink sm:text-6xl lg:text-7xl">
+                Cook what you
+                <br />
+                <span className="text-terracotta">already have.</span>
+              </h1>
 
-          <motion.div
-            className="lg:col-span-5 relative mt-12 lg:mt-0"
-            initial={{ y: 24, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.8, ease: "easeOut", delay: 0.3 }}
-          >
-            {/* Editor's note — spring diagonal offset + faint image on hover */}
-            <motion.div
-              initial="rest"
-              whileHover="hover"
-              animate="rest"
-              variants={{
-                rest: { x: 0, y: 0 },
-                hover: { x: -4, y: -4 },
-              }}
-              transition={SPRING}
-              className="bg-[#1a1a19] p-10 relative z-10 hairline-l hairline-b overflow-hidden"
-            >
-              <motion.div
-                variants={{ rest: { opacity: 0 }, hover: { opacity: 0.07 } }}
-                transition={{ duration: 0.8, ease: "easeOut" }}
-                className="absolute inset-0 z-0"
-              >
-                <Image
-                  src="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?q=80&w=800&auto=format&fit=crop"
-                  fill
-                  className="object-cover"
-                  alt=""
-                  sizes="(max-width: 1024px) 100vw, 40vw"
-                />
-              </motion.div>
-              <div className="relative z-10">
-                <span className="kicker text-xs text-text-tertiary block mb-6">EDITOR&apos;S NOTE</span>
-                <p className="font-headline italic text-2xl leading-snug mb-8 text-[#e6e6e6]">
-                  &ldquo;The act of cooking is not merely about sustenance, but the
-                  orchestration of time, texture, and memory. Here, we document
-                  those moments.&rdquo;
-                </p>
-                <div className="flex justify-between items-end">
-                  <span className="font-label text-sm uppercase tracking-widest text-text-tertiary">
-                    14.10.25
+              <p className="mb-9 max-w-lg text-lg leading-relaxed text-ink-soft">
+                Most meal planners hand you a shopping list for food you do not own. Recepie
+                starts at the other end — your shelf — and builds the week outward from it.
+              </p>
+
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                <Link
+                  href="/pantry"
+                  className="group inline-flex min-h-12 items-center justify-center gap-2 rounded-pill bg-terracotta px-7 text-sm font-medium text-white transition-colors hover:bg-terracotta-deep"
+                >
+                  Start with my pantry
+                  <ArrowRight
+                    aria-hidden="true"
+                    className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1"
+                  />
+                </Link>
+                <Link
+                  href="/meal-prep/dossier"
+                  className="inline-flex min-h-12 items-center justify-center gap-2 rounded-pill border border-line-strong bg-surface px-7 text-sm font-medium text-ink transition-colors hover:border-terracotta-edge hover:text-terracotta"
+                >
+                  Generate a full week
+                </Link>
+              </div>
+
+              <p className="numeric mt-5 text-xs text-ink-faint">
+                No account needed · Runs in guest mode
+              </p>
+            </motion.div>
+
+            {/* The product's actual mechanic, shown rather than described. */}
+            <motion.div className="lg:col-span-6" {...rise(0.2)}>
+              <div className="card overflow-hidden shadow-lg">
+                <div className="flex items-center justify-between border-b border-line bg-surface-muted px-5 py-3">
+                  <span className="kicker text-[10px] text-ink-faint">Your shelf</span>
+                  <span className="numeric text-[10px] text-ink-faint">
+                    {PANTRY_CHIPS.length} items
                   </span>
-                  <span className="font-headline text-lg italic opacity-80">E. Thorne</span>
+                </div>
+
+                <div className="flex flex-wrap gap-2 p-5">
+                  {PANTRY_CHIPS.map((chip, i) => (
+                    <motion.span
+                      key={chip}
+                      initial={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.32, delay: 0.45 + i * 0.05 }}
+                      className="rounded-pill border border-line-strong bg-paper px-3 py-1.5 text-sm text-ink-soft"
+                    >
+                      {chip}
+                    </motion.span>
+                  ))}
+                </div>
+
+                <div className="flex items-center gap-2 border-y border-line bg-herb-wash px-5 py-2.5">
+                  <ChefHat aria-hidden="true" className="h-3.5 w-3.5 text-herb-ink" />
+                  <span className="kicker text-[10px] text-herb-ink">
+                    5 of 6 matched — 1 recipe found
+                  </span>
+                </div>
+
+                <div className="flex gap-4 p-5">
+                  <div className="relative h-[92px] w-[124px] shrink-0 overflow-hidden rounded-sm bg-surface-muted">
+                    <Image
+                      src="https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?auto=format&fit=crop&w=400&h=300&q=80"
+                      alt="Harissa roasted chicken thighs with chickpeas"
+                      fill
+                      className="object-cover"
+                      sizes="124px"
+                      priority
+                    />
+                  </div>
+                  <div className="min-w-0">
+                    <h2 className="font-headline text-lg leading-snug text-ink">
+                      Harissa chicken &amp; chickpeas
+                    </h2>
+                    <p className="numeric mt-1 text-[11px] text-ink-faint">
+                      45m · 612 kcal · 48g protein
+                    </p>
+                    <p className="kicker mt-2 inline-flex rounded-pill bg-ember-wash px-2 py-0.5 text-[9px] text-ember-ink">
+                      Missing: labneh
+                    </p>
+                  </div>
                 </div>
               </div>
             </motion.div>
-            {/* Decorative asymmetric offset */}
-            <div className="absolute inset-0 bg-[#222222] -translate-x-4 translate-y-4 z-0" />
-          </motion.div>
-
+          </div>
         </section>
 
-        {/* ── II. Seasonal Strip ────────────────────────────────────────── */}
-        <motion.section
-          className="mb-32"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8, ease: "easeOut", delay: 0.45 }}
-        >
-          <div className="flex items-center gap-6 mb-8">
-            <span className="kicker text-sm text-text-tertiary whitespace-nowrap">IN SEASON</span>
-            <div className="h-px flex-grow bg-[#6d7a73]/20" />
+        {/* ── In season ─────────────────────────────────────────────────── */}
+        <section aria-labelledby="season-heading" className="border-y border-line bg-paper-deep">
+          <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-6 md:flex-row md:items-center md:px-8">
+            <h2 id="season-heading" className="kicker shrink-0 text-[10px] text-terracotta">
+              In season now
+            </h2>
+            <ul className="flex flex-wrap gap-2">
+              {SEASONAL.map((item) => (
+                <li
+                  key={item}
+                  className="rounded-pill border border-line-strong bg-surface px-3 py-1 text-sm text-ink-soft"
+                >
+                  {item}
+                </li>
+              ))}
+            </ul>
           </div>
-          <div className="flex flex-wrap gap-4">
-            {SEASONAL.map((item, i) => (
-              <motion.span
-                key={item}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, ease: "easeOut", delay: 0.5 + i * 0.06 }}
-                whileHover={{ scale: 1.05, transition: SPRING }}
-                className="kicker text-xs text-text-tertiary px-4 py-2 border-[0.5px] border-[#6d7a73]/40 hover:border-[#00694c]/60 hover:text-[#00694c] transition-colors cursor-default"
-              >
-                {item}
-              </motion.span>
+        </section>
+
+        {/* ── How it works ──────────────────────────────────────────────── */}
+        <section aria-labelledby="how-heading" className="mx-auto max-w-7xl px-4 py-24 md:px-8">
+          <h2 id="how-heading" className="display mb-3 max-w-2xl text-4xl text-ink md:text-5xl">
+            Three steps, one shopping trip.
+          </h2>
+          <p className="mb-14 max-w-xl text-lg text-ink-soft">
+            The whole loop takes about four minutes on a Sunday evening.
+          </p>
+
+          <ol className="grid gap-6 md:grid-cols-3">
+            {STEPS.map((step, i) => (
+              <li key={step.title} className="card relative p-7">
+                <span
+                  aria-hidden="true"
+                  className="numeric absolute right-6 top-6 text-4xl font-semibold text-line-strong"
+                >
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <span
+                  aria-hidden="true"
+                  className="mb-6 flex h-12 w-12 items-center justify-center rounded-md bg-terracotta-wash text-terracotta"
+                >
+                  <step.icon className="h-5 w-5" />
+                </span>
+                <h3 className="mb-2 font-headline text-xl text-ink">{step.title}</h3>
+                <p className="text-sm leading-relaxed text-ink-soft">{step.body}</p>
+              </li>
             ))}
-          </div>
-        </motion.section>
-
-        {/* ── III. Selection Grid ───────────────────────────────────────── */}
-        <section className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-32">
-
-          {/* Card 01 — Recipe Box */}
-          <Link href="/meal-prep/dossier" className="group">
-            <motion.div
-              initial="rest"
-              whileHover="hover"
-              animate="rest"
-              className="bg-[#1a1a19] aspect-[4/3] p-10 flex flex-col justify-between hairline-b hairline-r relative overflow-hidden"
-            >
-              <motion.div
-                variants={cardImgVariants}
-                transition={{ duration: 1, ease: "easeOut" }}
-                className="absolute inset-0 z-0"
-              >
-                <Image
-                  src="https://images.unsplash.com/photo-1606787366850-de6330128bfc?q=80&w=800&auto=format&fit=crop"
-                  fill
-                  className="object-cover"
-                  alt=""
-                  sizes="(max-width: 768px) 100vw, 50vw"
-                />
-              </motion.div>
-
-              <div className="flex justify-between items-start z-10 relative">
-                <span className="font-label text-2xl text-text-tertiary">01</span>
-                <div className="w-12 h-12 flex items-center justify-center bg-[#00694c]/10">
-                  <ChefHat className="w-5 h-5 text-[#00694c]" />
-                </div>
-              </div>
-              <div className="z-10 relative mt-16">
-                <h3 className="font-headline text-3xl mb-4 group-hover:text-[#00694c] transition-colors duration-300">
-                  The Recipe Box
-                </h3>
-                <p className="font-body text-text-secondary mb-12 max-w-sm">
-                  Your personal archive of culinary experiments, calibrated by
-                  macros and organized by ritual.
-                </p>
-              </div>
-              <div className="flex justify-between items-center pt-6 hairline-t z-10 relative">
-                <span className="kicker text-xs text-text-tertiary">MEAL PREP PROTOCOL</span>
-                <ArrowRight className="w-4 h-4 text-text-tertiary group-hover:text-[#00694c] transition-colors duration-300" />
-              </div>
-            </motion.div>
-          </Link>
-
-          {/* Card 02 — Mindful Pairings */}
-          <Link href="/pantry" className="group">
-            <motion.div
-              initial="rest"
-              whileHover="hover"
-              animate="rest"
-              className="bg-[#1a1a19] aspect-[4/3] p-10 flex flex-col justify-between hairline-b hairline-r relative overflow-hidden"
-            >
-              <motion.div
-                variants={cardImgVariants}
-                transition={{ duration: 1, ease: "easeOut" }}
-                className="absolute inset-0 z-0"
-              >
-                <Image
-                  src="https://images.unsplash.com/photo-1505935428862-770b6f24f629?q=80&w=800&auto=format&fit=crop"
-                  fill
-                  className="object-cover"
-                  alt=""
-                  sizes="(max-width: 768px) 100vw, 50vw"
-                />
-              </motion.div>
-
-              <div className="flex justify-between items-start z-10 relative">
-                <span className="font-label text-2xl text-text-tertiary">02</span>
-                <div className="w-12 h-12 flex items-center justify-center bg-[#855400]/10">
-                  <Leaf className="w-5 h-5 text-[#855400]" />
-                </div>
-              </div>
-              <div className="z-10 relative mt-16">
-                <h3 className="font-headline text-3xl mb-4 group-hover:text-[#855400] transition-colors duration-300">
-                  Mindful Pairings
-                </h3>
-                <p className="font-body text-text-secondary mb-12 max-w-sm">
-                  Tell us what you have. We match your pantry to recipes with
-                  precision and seasonal intention.
-                </p>
-              </div>
-              <div className="flex justify-between items-center pt-6 hairline-t z-10 relative">
-                <span className="kicker text-xs text-text-tertiary">PANTRY INVENTORY</span>
-                <ArrowRight className="w-4 h-4 text-text-tertiary group-hover:text-[#855400] transition-colors duration-300" />
-              </div>
-            </motion.div>
-          </Link>
-
+          </ol>
         </section>
 
-        {/* ── IV. Journal Row ───────────────────────────────────────────── */}
-        <section className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-32">
+        {/* ── Entry points ──────────────────────────────────────────────── */}
+        <section
+          aria-labelledby="start-heading"
+          className="border-t border-line bg-paper-deep"
+        >
+          <div className="mx-auto max-w-7xl px-4 py-24 md:px-8">
+            <h2 id="start-heading" className="display mb-14 text-4xl text-ink md:text-5xl">
+              Two ways in.
+            </h2>
 
-          {/* Feature Spread (7/12) */}
-          <motion.div
-            initial="rest"
-            whileHover="hover"
-            animate="rest"
-            className="lg:col-span-7 bg-[#1a1a19] relative overflow-hidden hairline-b hairline-r"
-          >
-            <div className="aspect-[16/9] relative flex items-end p-10">
-              {/* Bg image — 40% base, 60% hover, slow scale */}
-              <motion.div
-                variants={{
-                  rest: { opacity: 0.4, scale: 1 },
-                  hover: { opacity: 0.6, scale: 1.05 },
-                }}
-                transition={{ duration: 1.5, ease: "easeOut" }}
-                className="absolute inset-0 z-0"
-              >
-                <Image
-                  src="https://images.unsplash.com/photo-1476224203421-9ac39bcb3327?q=80&w=1200&auto=format&fit=crop"
-                  fill
-                  className="object-cover"
-                  alt=""
-                  sizes="(max-width: 1024px) 100vw, 58vw"
-                />
-              </motion.div>
-              {/* Readability scrim */}
-              <div className="absolute inset-0 z-10 bg-gradient-to-t from-[#151514] via-[#151514]/80 to-transparent" />
-              {/* Text */}
-              <div className="relative z-20">
-                <span className="kicker text-xs text-[#00694c] block mb-3">ISSUE Nº 001</span>
-                <h3 className="font-headline text-3xl text-[#e6e6e6] leading-tight">
-                  On the ritual of mise en place.
-                </h3>
-              </div>
+            <div className="grid gap-6 md:grid-cols-2">
+              {[
+                {
+                  href: "/pantry",
+                  eyebrow: "Pantry inventory",
+                  title: "Match what is on the shelf",
+                  body: "Add ingredients, get ranked recipes with the gaps named up front. Best when you are cooking tonight.",
+                  img: "https://images.unsplash.com/photo-1505935428862-770b6f24f629?auto=format&fit=crop&w=800&h=600&q=80",
+                  alt: "Jars and dry goods on an open pantry shelf",
+                },
+                {
+                  href: "/meal-prep/dossier",
+                  eyebrow: "Meal prep protocol",
+                  title: "Design a full week",
+                  body: "Set your macros and constraints once. Get a day-by-day plan, a prep order, and one consolidated market list.",
+                  img: "https://images.unsplash.com/photo-1606787366850-de6330128bfc?auto=format&fit=crop&w=800&h=600&q=80",
+                  alt: "Prepared meals portioned into containers",
+                },
+              ].map((card) => (
+                <Link
+                  key={card.href}
+                  href={card.href}
+                  className="card card-interactive group block overflow-hidden"
+                >
+                  <div className="relative aspect-[16/9] overflow-hidden bg-surface-muted">
+                    <Image
+                      src={card.img}
+                      alt={card.alt}
+                      fill
+                      className="object-cover transition-transform duration-500 group-hover:scale-105"
+                      sizes="(max-width: 768px) 100vw, 50vw"
+                    />
+                  </div>
+                  <div className="p-7">
+                    <p className="kicker mb-2 text-[10px] text-terracotta">{card.eyebrow}</p>
+                    <h3 className="mb-2 font-headline text-2xl text-ink transition-colors group-hover:text-terracotta">
+                      {card.title}
+                    </h3>
+                    <p className="mb-5 text-sm leading-relaxed text-ink-soft">{card.body}</p>
+                    <span className="kicker inline-flex items-center gap-2 text-[10px] text-terracotta">
+                      Open
+                      <ArrowRight
+                        aria-hidden="true"
+                        className="h-3 w-3 transition-transform duration-200 group-hover:translate-x-1"
+                      />
+                    </span>
+                  </div>
+                </Link>
+              ))}
             </div>
-          </motion.div>
+          </div>
+        </section>
 
-          {/* Insight Quote (5/12) */}
-          <motion.div
-            initial="rest"
-            whileHover="hover"
-            animate="rest"
-            className="lg:col-span-5 bg-[#1a1a19] relative overflow-hidden hairline-b"
-          >
-            {/* Bg image — 20% base, 40% hover */}
-            <motion.div
-              variants={{
-                rest: { opacity: 0.2, scale: 1 },
-                hover: { opacity: 0.4, scale: 1.05 },
-              }}
-              transition={{ duration: 1.5, ease: "easeOut" }}
-              className="absolute inset-0 z-0"
-            >
+        {/* ── Journal ───────────────────────────────────────────────────── */}
+        <section className="mx-auto max-w-7xl px-4 py-24 md:px-8">
+          <div className="card grid overflow-hidden md:grid-cols-2">
+            <div className="relative min-h-[240px] bg-surface-muted">
               <Image
-                src="https://images.unsplash.com/photo-1596450514735-a13dd1118228?q=80&w=800&auto=format&fit=crop"
+                src="https://images.unsplash.com/photo-1476224203421-9ac39bcb3327?auto=format&fit=crop&w=1000&h=800&q=80"
+                alt="Ingredients laid out in preparation for cooking"
                 fill
                 className="object-cover"
-                alt=""
-                sizes="(max-width: 1024px) 100vw, 42vw"
+                sizes="(max-width: 768px) 100vw, 50vw"
               />
-            </motion.div>
-            {/* Readability scrim */}
-            <div className="absolute inset-0 z-10 bg-gradient-to-br from-[#151514] via-[#151514]/90 to-[#151514]/70" />
-            {/* Content */}
-            <div className="relative z-20 p-10 flex flex-col justify-between" style={{ minHeight: "100%" }}>
-              <div>
-                <span className="kicker text-xs text-text-tertiary block mb-6">FROM THE ARCHIVE</span>
-                <blockquote className="font-headline italic text-xl leading-snug text-[#e6e6e6]">
-                  &ldquo;Precision in preparation is the invisible ingredient in
-                  every great dish.&rdquo;
-                </blockquote>
-              </div>
-              <div className="mt-8 pt-6 hairline-t flex items-center justify-between">
-                <Link
-                  href="/journal"
-                  className="kicker text-xs text-[#00694c] hover:opacity-70 transition-opacity flex items-center gap-2"
-                >
-                  READ THE JOURNAL
-                  <ArrowRight className="w-3 h-3" />
-                </Link>
-                <BookOpen className="w-4 h-4 text-text-tertiary opacity-40" />
-              </div>
             </div>
-          </motion.div>
-
+            <div className="flex flex-col justify-center p-8 md:p-12">
+              <p className="kicker mb-4 text-[10px] text-terracotta">From the journal</p>
+              <blockquote className="font-headline text-2xl leading-snug text-ink md:text-3xl">
+                Mise en place is not a chore before the cooking. It is most of the cooking.
+              </blockquote>
+              <Link
+                href="/journal"
+                className="kicker mt-8 inline-flex items-center gap-2 text-[10px] text-terracotta transition-opacity hover:opacity-70"
+              >
+                Read the journal
+                <ArrowRight aria-hidden="true" className="h-3 w-3" />
+              </Link>
+            </div>
+          </div>
         </section>
-
       </main>
 
       <MarketingFooter />
