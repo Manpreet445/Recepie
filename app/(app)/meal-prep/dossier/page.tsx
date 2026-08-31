@@ -526,7 +526,9 @@ export default function DossierPage() {
         </fieldset>
 
         {/* ── Submit ────────────────────────────────────────────────────── */}
-        <div className="sticky bottom-4 pt-2">
+        {/* Not sticky: a pinned bar would sit over whichever field has focus
+            further up the form, which is exactly what WCAG 2.2 forbids. */}
+        <div className="pt-2">
           <button
             type="submit"
             className="group flex min-h-13 w-full cursor-pointer items-center justify-center gap-2 rounded-pill bg-terracotta px-6 py-3.5 text-sm font-medium text-white shadow-md transition-colors hover:bg-terracotta-deep"
