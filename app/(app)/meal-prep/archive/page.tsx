@@ -122,7 +122,7 @@ export default function ArchivePage() {
 
                   <Link
                     href="/meal-prep/protocol"
-                    className="kicker group/link mt-5 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-pill bg-terracotta px-5 text-[10px] text-white transition-colors hover:bg-terracotta-deep"
+                    className="kicker group/link mt-5 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-pill bg-terracotta px-5 text-[10px] text-on-terracotta transition-colors hover:bg-terracotta-deep"
                   >
                     Resume protocol
                     <ArrowRight

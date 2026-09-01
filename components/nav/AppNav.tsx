@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Wordmark from "@/components/shared/Wordmark";
 import GuestPill from "@/components/shared/GuestPill";
+import ThemeToggle from "@/components/shared/ThemeToggle";
 import { User, ChefHat } from "lucide-react";
 
 const tabs = [
@@ -81,6 +82,7 @@ export default function AppNav() {
             </span>
           )}
           <GuestPill className="hidden sm:inline-flex" />
+          <ThemeToggle />
           <button
             type="button"
             aria-label="Account"

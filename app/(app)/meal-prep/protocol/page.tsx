@@ -196,7 +196,7 @@ export default function ProtocolPage() {
       <div className="mb-10 flex flex-wrap items-center gap-2.5">
         <Link
           href="/meal-prep/market-list"
-          className="kicker inline-flex min-h-11 items-center gap-2 rounded-pill bg-terracotta px-5 text-[10px] text-white transition-colors hover:bg-terracotta-deep"
+          className="kicker inline-flex min-h-11 items-center gap-2 rounded-pill bg-terracotta px-5 text-[10px] text-on-terracotta transition-colors hover:bg-terracotta-deep"
         >
           <ShoppingCart aria-hidden="true" className="h-3.5 w-3.5" />
           Market list

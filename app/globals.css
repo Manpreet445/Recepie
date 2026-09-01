@@ -7,6 +7,8 @@
    ═══════════════════════════════════════════════════════════════════════════ */
 
 :root {
+  color-scheme: light;
+
   /* ── Surfaces ────────────────────────────────────────────────────────── */
   --paper: #fffbeb;          /* page — warm parchment */
   --paper-deep: #fbf3e0;     /* sunken bands, footers */
@@ -22,6 +24,7 @@
   /* ── Terracotta (primary) ────────────────────────────────────────────── */
   --terracotta: #9a3412;         /* 7.2:1 on paper — safe for text */
   --terracotta-deep: #7c2d12;
+  --on-terracotta: #ffffff;      /* 7.4:1 on terracotta — text on the fill */
   --terracotta-wash: rgba(154, 52, 18, 0.08);
   --terracotta-edge: rgba(154, 52, 18, 0.22);
 
@@ -75,6 +78,73 @@
   --dur-fast: 150ms;
   --dur-base: 240ms;
   --dur-slow: 420ms;
+
+  /* Parchment tooth — needs a different ink once the ground goes dark. */
+  --grain-dot: rgba(154, 52, 18, 0.06);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Dark theme
+
+   Only one dark block exists, keyed on an explicit attribute. The inline
+   script in the document head resolves the "system" preference to a concrete
+   data-theme value before first paint, so there is no second
+   prefers-color-scheme block to drift out of sync with this one.
+
+   Every text pair below was measured, not estimated:
+     ink/paper 16.5:1 · ink-soft/surface 9.1:1 · ink-faint/surface-muted 5.2:1
+     terracotta/surface 7.4:1 · on-terracotta/terracotta 7.5:1
+     herb-ink/surface 11.7:1 · ember-ink/surface 10.3:1 · danger/surface 9.1:1
+   ═══════════════════════════════════════════════════════════════════════════ */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --paper: #16100c;
+  --paper-deep: #100b08;
+  --surface: #211913;
+  --surface-muted: #2a201a;
+  --surface-hover: #302419;
+
+  --ink: #f7efe3;
+  --ink-soft: #cbb9a5;
+  --ink-faint: #a3907e;
+
+  /* Accents lighten as the ground darkens; the ink/fill split inverts with
+     them, so --on-terracotta becomes dark rather than white. */
+  --terracotta: #e8956b;
+  --terracotta-deep: #f2ab86;
+  --on-terracotta: #2b1206;
+  --terracotta-wash: rgba(232, 149, 107, 0.14);
+  --terracotta-edge: rgba(232, 149, 107, 0.34);
+
+  --herb: #34d399;
+  --herb-ink: #5eead4;
+  --herb-wash: rgba(52, 211, 153, 0.14);
+  --herb-edge: rgba(52, 211, 153, 0.34);
+
+  --ember: #fb923c;
+  --ember-ink: #fdba74;
+  --ember-wash: rgba(251, 146, 60, 0.14);
+
+  --danger: #fca5a5;
+  --danger-wash: rgba(252, 165, 165, 0.14);
+  --success: #5eead4;
+  --success-wash: rgba(94, 234, 212, 0.14);
+  --warning: #fcd34d;
+  --warning-wash: rgba(252, 211, 77, 0.14);
+
+  /* Matched to the light theme's divider weight (1.2–1.6:1), slightly
+     stronger because edges read weaker against a dark ground. */
+  --line: #453427;
+  --line-strong: #5f4a38;
+
+  /* Warm-tinted shadows read as mud on a dark ground; depth comes from the
+     surface ramp instead, so these drop to plain darkening. */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 16px -4px rgba(0, 0, 0, 0.55);
+  --shadow-lg: 0 14px 36px -10px rgba(0, 0, 0, 0.7);
+
+  --grain-dot: rgba(232, 149, 107, 0.07);
 }
 
 /* ═══ Tailwind v4 token registration ════════════════════════════════════ */
@@ -91,6 +161,7 @@
 
   --color-terracotta: var(--terracotta);
   --color-terracotta-deep: var(--terracotta-deep);
+  --color-on-terracotta: var(--on-terracotta);
   --color-terracotta-wash: var(--terracotta-wash);
   --color-terracotta-edge: var(--terracotta-edge);
 
@@ -213,9 +284,11 @@ p {
   min-width: 0;
 }
 
+/* Uses the fill/on-fill pair so the selection stays legible in both themes —
+   the previous wash+deep pairing inverts to light-on-light in dark. */
 ::selection {
-  background: var(--terracotta-wash);
-  color: var(--terracotta-deep);
+  background: var(--terracotta);
+  color: var(--on-terracotta);
 }
 
 :focus-visible {
@@ -276,6 +349,19 @@ p {
   line-height: 1.02;
 }
 
+/* ═══ Theme toggle ═════════════════════════════════════════════════════
+   The button's icon and its accessible name are both selected by CSS from
+   the current data-theme, so the markup is identical on server and client —
+   no hydration mismatch, and no icon flash on load. Elements hidden with
+   display:none are dropped from the accessibility tree, so exactly one
+   label is exposed at a time.                                             */
+:root[data-theme="dark"] .theme-when-light {
+  display: none;
+}
+:root:not([data-theme="dark"]) .theme-when-dark {
+  display: none;
+}
+
 /* ═══ Surface primitives ═══════════════════════════════════════════════ */
 .card {
   background: var(--surface);
@@ -316,7 +402,7 @@ p {
   inset: 0;
   pointer-events: none;
   opacity: 0.4;
-  background-image: radial-gradient(circle at 1px 1px, rgba(154, 52, 18, 0.06) 1px, transparent 0);
+  background-image: radial-gradient(circle at 1px 1px, var(--grain-dot) 1px, transparent 0);
   background-size: 22px 22px;
 }
 

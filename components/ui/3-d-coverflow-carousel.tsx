@@ -162,7 +162,10 @@ export function CoverFlowCarousel({
       aria-roledescription="carousel"
       aria-labelledby={sectionLabel ? labelId : undefined}
       aria-label={sectionLabel ? undefined : "Featured recipes"}
-      className={`relative flex w-full select-none items-center justify-center overflow-hidden bg-roast py-16 text-on-roast md:py-20 ${className}`}
+      // The band stays dark in both themes. Its edge is derived from the band
+      // itself rather than --line, so it keeps definition once the page around
+      // it also goes dark.
+      className={`relative flex w-full select-none items-center justify-center overflow-hidden border-y border-on-roast/10 bg-roast py-16 text-on-roast md:py-20 ${className}`}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
       onFocusCapture={() => setIsPaused(true)}

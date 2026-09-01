@@ -121,7 +121,7 @@ export function ErrorState({
         <button
           type="button"
           onClick={onRetry}
-          className="kicker inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-pill bg-terracotta px-5 text-[11px] text-white transition-colors hover:bg-terracotta-deep"
+          className="kicker inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-pill bg-terracotta px-5 text-[11px] text-on-terracotta transition-colors hover:bg-terracotta-deep"
         >
           <RefreshCw aria-hidden="true" className="h-3.5 w-3.5" />
           Try again

@@ -27,7 +27,7 @@ export default function MarketingFooter() {
           </div>
           <button
             type="submit"
-            className="kicker mt-auto inline-flex min-h-11 cursor-pointer items-center justify-center rounded-sm bg-terracotta px-6 text-[11px] text-white transition-colors hover:bg-terracotta-deep"
+            className="kicker mt-auto inline-flex min-h-11 cursor-pointer items-center justify-center rounded-sm bg-terracotta px-6 text-[11px] text-on-terracotta transition-colors hover:bg-terracotta-deep"
           >
             Notify me
           </button>

@@ -531,7 +531,7 @@ export default function DossierPage() {
         <div className="pt-2">
           <button
             type="submit"
-            className="group flex min-h-13 w-full cursor-pointer items-center justify-center gap-2 rounded-pill bg-terracotta px-6 py-3.5 text-sm font-medium text-white shadow-md transition-colors hover:bg-terracotta-deep"
+            className="group flex min-h-13 w-full cursor-pointer items-center justify-center gap-2 rounded-pill bg-terracotta px-6 py-3.5 text-sm font-medium text-on-terracotta shadow-md transition-colors hover:bg-terracotta-deep"
           >
             Generate protocol
             <ChevronRight

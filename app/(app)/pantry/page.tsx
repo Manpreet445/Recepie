@@ -203,7 +203,7 @@ function MatchCard({
             </button>
             <Link
               href={`/recipe/${recipeId}`}
-              className="kicker group inline-flex min-h-11 items-center gap-2 rounded-pill bg-terracotta px-5 text-[10px] text-white transition-colors hover:bg-terracotta-deep"
+              className="kicker group inline-flex min-h-11 items-center gap-2 rounded-pill bg-terracotta px-5 text-[10px] text-on-terracotta transition-colors hover:bg-terracotta-deep"
             >
               View recipe
               <ArrowRight
@@ -372,7 +372,7 @@ export default function PantryPage() {
             type="button"
             onClick={() => addIngredient()}
             disabled={!inputValue.trim()}
-            className="inline-flex min-h-12 shrink-0 cursor-pointer items-center gap-2 rounded-sm bg-terracotta px-5 text-sm font-medium text-white transition-colors hover:bg-terracotta-deep disabled:cursor-not-allowed disabled:opacity-40"
+            className="inline-flex min-h-12 shrink-0 cursor-pointer items-center gap-2 rounded-sm bg-terracotta px-5 text-sm font-medium text-on-terracotta transition-colors hover:bg-terracotta-deep disabled:cursor-not-allowed disabled:opacity-40"
           >
             <Plus aria-hidden="true" className="h-4 w-4" />
             Add

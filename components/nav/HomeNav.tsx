@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Wordmark from "@/components/shared/Wordmark";
+import ThemeToggle from "@/components/shared/ThemeToggle";
 
 /**
  * Marketing nav. Transparent over the hero, then settles onto a parchment bar
@@ -39,9 +40,10 @@ export default function HomeNav() {
           >
             Pantry
           </Link>
+          <ThemeToggle />
           <Link
             href="/meal-prep/dossier"
-            className="kicker inline-flex min-h-11 items-center rounded-pill bg-terracotta px-5 text-[11px] text-white transition-colors hover:bg-terracotta-deep"
+            className="kicker inline-flex min-h-11 items-center rounded-pill bg-terracotta px-5 text-[11px] text-on-terracotta transition-colors hover:bg-terracotta-deep"
           >
             Plan a week
           </Link>

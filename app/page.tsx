@@ -102,7 +102,7 @@ export default function HomePage() {
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                 <Link
                   href="/pantry"
-                  className="group inline-flex min-h-12 items-center justify-center gap-2 rounded-pill bg-terracotta px-7 text-sm font-medium text-white transition-colors hover:bg-terracotta-deep"
+                  className="group inline-flex min-h-12 items-center justify-center gap-2 rounded-pill bg-terracotta px-7 text-sm font-medium text-on-terracotta transition-colors hover:bg-terracotta-deep"
                 >
                   Start with my pantry
                   <ArrowRight
